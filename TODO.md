@@ -86,17 +86,17 @@
 
 ## FASE 3 — Sidebar esquerda
 
-- [ ] **`components/AtomPalette.tsx`**  
+- [x] **`components/AtomPalette.tsx`**  
   Recebe: `activeSymbol`, `onSelect(symbol)`.  
   Renderiza um círculo por átomo com cor do `atomData`.  
   Estado visual: ativo (borda destacada), hover, inativo.
 
-- [ ] **`components/BondToolbar.tsx`**  
+- [x] **`components/BondToolbar.tsx`**  
   Recebe: `activeBondType`, `onChange(type)`.  
   Três botões: I (single), II (double), III (triple).  
   Cada botão mostra linha(s) SVG desenhadas representando o tipo de ligação.
 
-- [ ] **`components/Sidebar.tsx`**  
+- [x] **`components/Sidebar.tsx`**  
   Compõe `AtomPalette` (topo) + separador + `BondToolbar` (base).  
   Coluna fixa à esquerda, altura 100%.
 

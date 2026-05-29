@@ -18,7 +18,7 @@ Editor visual 2D de moléculas químicas para uso educacional. O usuário posici
 | Camada | Tecnologia | Justificativa |
 |--------|-----------|---------------|
 | Framework | Next.js 16 (App Router) + TypeScript | Velocidade de desenvolvimento, deploy fácil na Vercel |
-| Estilização | Tailwind CSS | Utilitário, zero config |
+| Estilização | Tailwind CSS | Utilitário | ShadCn | 
 | Renderização | SVG customizado (sem lib externa) | Controle total, sem overhead, sem dependência pesada |
 | Estado | React hooks (`useState`, `useReducer`) | Suficiente para o MVP |
 | Lógica química | Client-side puro | Sem backend no MVP |
