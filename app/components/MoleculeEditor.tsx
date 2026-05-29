@@ -1,5 +1,5 @@
-// Componente raiz do editor de moléculas. Detém todo o estado da aplicação via
-// useReducer e expõe estado + dispatch para os filhos via MoleculeEditorContext.
+// Componente raiz do editor de moléculas. Detém todo o estado via useReducer,
+// expõe estado + dispatch via contexto e monta o layout completo da aplicação.
 
 'use client';
 
@@ -9,8 +9,11 @@ import {
   addAtom,
   addBond,
   removeAtom,
-  removeBond,
 } from '../lib/moleculeGraph';
+import Sidebar from './Sidebar';
+import Canvas from './Canvas';
+import AtomInfoCard from './AtomInfoCard';
+import BottomBar from './BottomBar';
 
 // ---------------------------------------------------------------------------
 // Estado
@@ -116,7 +119,7 @@ function reducer(state: EditorState, action: Action): EditorState {
         graph: {
           ...state.graph,
           atoms: state.graph.atoms.map((a) =>
-            a.id === action.atomId ? { ...a, x: action.x, y: action.y } : a
+            a.id === action.atomId ? { ...a, x: action.x, y: action.y } : a,
           ),
         },
       };
@@ -161,7 +164,41 @@ export function useMoleculeEditor(): MoleculeEditorContextValue {
 }
 
 // ---------------------------------------------------------------------------
-// Componente
+// Layout interno — conecta state/dispatch aos filhos
+// ---------------------------------------------------------------------------
+
+function EditorLayout() {
+  const { state, dispatch } = useMoleculeEditor();
+
+  // AtomInfoCard só aparece fora do modo de criação de ligações
+  const infoAtomId = state.bondingFrom === null ? state.selectedAtomId : null;
+
+  return (
+    <div className="flex flex-col h-screen bg-zinc-900 text-zinc-100">
+      {/* Área principal: sidebar + canvas */}
+      <div className="flex flex-1 overflow-hidden">
+        <Sidebar />
+        <Canvas />
+      </div>
+
+      {/* Barra inferior: AtomInfoCard (esquerda) + BottomBar (direita) */}
+      <div className="flex">
+        <div className="flex-1 overflow-hidden">
+          <AtomInfoCard atomId={infoAtomId} graph={state.graph} />
+        </div>
+        <BottomBar
+          hasAtoms={state.graph.atoms.length > 0}
+          onZoomIn={() => dispatch({ type: 'ZOOM_IN' })}
+          onZoomOut={() => dispatch({ type: 'ZOOM_OUT' })}
+          onClear={() => dispatch({ type: 'CLEAR' })}
+        />
+      </div>
+    </div>
+  );
+}
+
+// ---------------------------------------------------------------------------
+// Componente exportado
 // ---------------------------------------------------------------------------
 
 export default function MoleculeEditor({ children }: { children?: ReactNode }) {
@@ -169,7 +206,7 @@ export default function MoleculeEditor({ children }: { children?: ReactNode }) {
 
   return (
     <MoleculeEditorContext.Provider value={{ state, dispatch }}>
-      {children}
+      {children ?? <EditorLayout />}
     </MoleculeEditorContext.Provider>
   );
 }

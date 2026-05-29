@@ -1,9 +1,11 @@
-import { Button } from "./components/ui/button";
+// Página principal. Monta o MoleculeEditor ocupando toda a viewport.
+
+import MoleculeEditor from './components/MoleculeEditor';
 
 export default function Home() {
   return (
-    <div>
-      <Button>Teste</Button>
-    </div>
+    <main className="w-screen h-screen overflow-hidden">
+      <MoleculeEditor />
+    </main>
   );
 }

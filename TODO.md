@@ -156,10 +156,10 @@
 
 ## FASE 6 — Composição final
 
-- [ ] **`app/page.tsx`**  
+- [x] **`app/page.tsx`**  
   Importa e renderiza `MoleculeEditor` ocupando 100vw × 100vh.
 
-- [ ] **`components/MoleculeEditor.tsx`** — montar layout completo:
+- [x] **`components/MoleculeEditor.tsx`** — montar layout completo:
   ```
   <div class="flex flex-col h-screen">
     <div class="flex flex-1 overflow-hidden">
@@ -173,8 +173,8 @@
   </div>
   ```
 
-- [ ] Ligar todos os callbacks do reducer aos componentes filhos
-- [ ] Commitar: `feat: full layout composition`
+- [x] Ligar todos os callbacks do reducer aos componentes filhos
+- [x] Commitar: `feat: full layout composition`
 
 ---
 
