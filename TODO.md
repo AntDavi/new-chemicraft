@@ -100,13 +100,13 @@
   Compõe `AtomPalette` (topo) + separador + `BondToolbar` (base).  
   Coluna fixa à esquerda, altura 100%.
 
-- [ ] Commitar: `feat: Sidebar — AtomPalette + BondToolbar`
+- [x] Commitar: `feat: Sidebar — AtomPalette + BondToolbar`
 
 ---
 
 ## FASE 4 — Canvas SVG
 
-- [ ] **`components/Canvas.tsx`**  
+- [x] **`components/Canvas.tsx`**  
   Recebe o grafo, estado ativo e callbacks do `MoleculeEditor`.
 
   Responsabilidades:
@@ -116,22 +116,22 @@
   - Capturar clique em área vazia → `PLACE_ATOM`
   - Aplicar `zoom` via `transform="scale(zoom)"`
 
-- [ ] **`components/AtomNode.tsx`** (sub-componente do Canvas)  
+- [x] **`components/AtomNode.tsx`** (sub-componente do Canvas)  
   Renderiza um `<circle>` + `<text>` com símbolo.  
   Props: atom, isSelected, isBondingFrom, onClick, onDragEnd.  
   Estados visuais: normal, selecionado (AtomInfoCard aberto), origem de ligação (destaque diferente).  
   Implementar drag com `onMouseDown` / `onMouseMove` / `onMouseUp` no SVG pai.
 
-- [ ] **`components/BondEdge.tsx`** (sub-componente do Canvas)  
+- [x] **`components/BondEdge.tsx`** (sub-componente do Canvas)  
   Renderiza 1, 2 ou 3 linhas `<line>` paralelas conforme o tipo.  
   Linhas duplas/triplas são deslocadas perpendicularmente à direção da ligação.
 
-- [ ] **`components/FormulaLabel.tsx`** (sub-componente do Canvas)  
+- [x] **`components/FormulaLabel.tsx`** (sub-componente do Canvas)  
   Calcula centróide dos átomos + offset vertical (acima da molécula).  
   Renderiza `<rect>` de fundo + `<text>` com fórmula.  
   Segunda linha com nome da molécula se `identifyMolecule` retornar resultado.
 
-- [ ] Commitar: `feat: Canvas — AtomNode, BondEdge, FormulaLabel`
+- [x] Commitar: `feat: Canvas — AtomNode, BondEdge, FormulaLabel`
 
 ---
 
