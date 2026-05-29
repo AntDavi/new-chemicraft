@@ -45,13 +45,13 @@
   Exporta `identifyMolecule(formula: string): { name: string, fact: string } | null`.  
   Dicionário mínimo: H₂O, CO₂, CH₄, NH₃, H₂O₂, C₂H₆O, HCl, O₂, N₂, H₂, HNO₃, CH₂O, C₆H₁₂O₆.
 
-- [ ] Commitar: `feat: lib — atom data, graph, valence, formula, database`
+- [x] Commitar: `feat: lib — atom data, graph, valence, formula, database`
 
 ---
 
 ## FASE 2 — Estado global (`MoleculeEditor`)
 
-- [ ] **`components/MoleculeEditor.tsx`**  
+- [x] **`components/MoleculeEditor.tsx`**  
   Componente raiz que detém todo o estado da aplicação via `useReducer`.
 
   Estado a gerenciar:
