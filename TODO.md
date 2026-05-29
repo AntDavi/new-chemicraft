@@ -23,25 +23,25 @@
 
 > Sem React ainda. Lógica pura, testável isoladamente.
 
-- [ ] **`lib/atomData.ts`**  
+- [x] **`lib/atomData.ts`**  
   Exporta objeto com dados de cada átomo: símbolo, nome, valência total, cor hex.  
   Átomos: C, H, O, N, S, P, F, Cl.
 
-- [ ] **`lib/moleculeGraph.ts`**  
+- [x] **`lib/moleculeGraph.ts`**  
   Define e exporta as interfaces `Atom`, `Bond`, `MoleculeGraph`.  
   Exporta funções puras: `addAtom`, `addBond`, `removeAtom`, `removeBond`.  
   `removeAtom` deve remover também todas as ligações daquele átomo.
 
-- [ ] **`lib/valenceCalculator.ts`**  
+- [x] **`lib/valenceCalculator.ts`**  
   Exporta `getUsedValence(atomId, graph)` e `getAvailableValence(atomId, graph)`.  
   Ordem das ligações: single=1, double=2, triple=3.
 
-- [ ] **`lib/formulaCalculator.ts`**  
+- [x] **`lib/formulaCalculator.ts`**  
   Exporta `calculateFormula(graph): string`.  
   Implementa Hill notation: C → H → demais em ordem alfabética.  
   Usa subscript unicode (₀₁₂₃...) para os números.
 
-- [ ] **`lib/moleculeDatabase.ts`**  
+- [x] **`lib/moleculeDatabase.ts`**  
   Exporta `identifyMolecule(formula: string): { name: string, fact: string } | null`.  
   Dicionário mínimo: H₂O, CO₂, CH₄, NH₃, H₂O₂, C₂H₆O, HCl, O₂, N₂, H₂, HNO₃, CH₂O, C₆H₁₂O₆.
 
