@@ -80,7 +80,7 @@
   - `ZOOM_IN` / `ZOOM_OUT`
   - `CLEAR`
 
-- [ ] Commitar: `feat: MoleculeEditor reducer and state shape`
+- [x] Commitar: `feat: MoleculeEditor reducer and state shape`
 
 ---
 
