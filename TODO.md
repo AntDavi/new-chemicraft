@@ -137,20 +137,20 @@
 
 ## FASE 5 — Barra inferior
 
-- [ ] **`components/AtomInfoCard.tsx`**  
+- [x] **`components/AtomInfoCard.tsx`**  
   Recebe: `atomId | null`, `graph`.  
   Quando `atomId` é `null`: oculto (altura 0 ou `hidden`).  
   Quando preenchido: mostra círculo colorido + nome + id + valência total + valência disponível.  
   Valência disponível: cor diferente se = 0 (saturado).  
   Animação: slide up ao aparecer.
 
-- [ ] **`components/BottomBar.tsx`**  
+- [x] **`components/BottomBar.tsx`**  
   Recebe callbacks: `onZoomIn`, `onZoomOut`, `onClear`.  
   Botões −, +, LIMPAR.  
   LIMPAR com estilo de ação destrutiva (cor de alerta).  
   Confirmar antes de limpar se houver átomos no grafo (`window.confirm` no MVP).
 
-- [ ] Commitar: `feat: AtomInfoCard + BottomBar`
+- [x] Commitar: `feat: AtomInfoCard + BottomBar`
 
 ---
 
