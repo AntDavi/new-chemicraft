@@ -216,15 +216,15 @@
 
 ## FASE 9 — Testes manuais
 
-- [ ] Construir H₂O → fórmula correta → nome "Água" exibido
-- [ ] Construir CH₄ → fórmula correta → nome "Metano" exibido
-- [ ] Construir HNO₃ → fórmula correta → nome "Ácido Nítrico" exibido
-- [ ] Tentar criar ligação extra em H (valência 1) → bloqueado
-- [ ] Clicar átomo → AtomInfoCard abre com dados corretos
-- [ ] Mover átomo → ligações acompanham
-- [ ] Deletar átomo → ligações removidas junto
-- [ ] LIMPAR → canvas vazio
-- [ ] Zoom in/out → molécula escala corretamente
+- [x] Construir H₂O → fórmula correta → nome "Água" exibido
+- [x] Construir CH₄ → fórmula correta → nome "Metano" exibido
+- [x] Construir HNO₃ → fórmula correta → nome "Ácido Nítrico" exibido
+- [x] Tentar criar ligação extra em H (valência 1) → bloqueado
+- [x] Clicar átomo → AtomInfoCard abre com dados corretos
+- [x] Mover átomo → ligações acompanham
+- [x] Deletar átomo → ligações removidas junto
+- [x] LIMPAR → canvas vazio
+- [x] Zoom in/out → molécula escala corretamente
 
 ---
 

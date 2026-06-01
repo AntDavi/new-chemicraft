@@ -1,6 +1,6 @@
 // Sub-componente do Canvas. Renderiza um átomo como <circle> + <text> no SVG.
-// Gerencia estados visuais (normal, selecionado, origem de ligação) e encapsula
-// a lógica de drag: mousedown aqui, mousemove/mouseup registrados no SVG pai.
+// Gerencia estados visuais e encapsula a lógica de drag (desabilitada no modo select).
+// Usa pan e zoom do contexto global para calcular posições corretas ao arrastar.
 
 'use client';
 
@@ -26,11 +26,16 @@ function getAtomColor(symbol: string): string {
   return atomData.find((d) => d.symbol === symbol)?.color ?? '#999999';
 }
 
-function svgCoordsFromEvent(e: MouseEvent, svg: SVGSVGElement, zoom: number) {
+function svgCoordsFromEvent(
+  e: MouseEvent,
+  svg: SVGSVGElement,
+  zoom: number,
+  pan: { x: number; y: number },
+) {
   const rect = svg.getBoundingClientRect();
   return {
-    x: (e.clientX - rect.left) / zoom,
-    y: (e.clientY - rect.top) / zoom,
+    x: (e.clientX - rect.left - pan.x) / zoom,
+    y: (e.clientY - rect.top - pan.y) / zoom,
   };
 }
 
@@ -65,35 +70,41 @@ export default function AtomNode({
   onMouseEnter,
   onMouseLeave,
 }: AtomNodeProps) {
-  const { dispatch } = useMoleculeEditor();
+  const { dispatch, state } = useMoleculeEditor();
+  const { mode, pan } = state;
 
   const hasDragged = useRef(false);
   const dragStart = useRef<{ clientX: number; clientY: number } | null>(null);
 
   // -------------------------------------------------------------------------
-  // Drag — mousedown inicia; mousemove e mouseup ficam no SVG pai
+  // Drag — desabilitado no modo select
   // -------------------------------------------------------------------------
 
   function handleMouseDown(e: React.MouseEvent<SVGGElement>) {
+    // No modo select, o drag de átomo é desabilitado
+    if (mode === 'select') return;
+
     e.preventDefault();
     e.stopPropagation();
 
     hasDragged.current = false;
     dragStart.current = { clientX: e.clientX, clientY: e.clientY };
 
-    const svg = (e.currentTarget as SVGGElement).closest('svg') as SVGSVGElement | null;
-    if (!svg) return;
+    const svgEl = (e.currentTarget as SVGGElement).closest('svg') as SVGSVGElement | null;
+    if (!svgEl) return;
+
+    // Captura svgEl como non-null para uso nas closures
+    const svg: SVGSVGElement = svgEl;
 
     function onMouseMove(ev: MouseEvent) {
       if (!dragStart.current) return;
 
-      // Só começa a mover após ultrapassar o threshold
       const dx = ev.clientX - dragStart.current.clientX;
       const dy = ev.clientY - dragStart.current.clientY;
       if (!hasDragged.current && Math.sqrt(dx * dx + dy * dy) < DRAG_THRESHOLD) return;
 
       hasDragged.current = true;
-      const { x, y } = svgCoordsFromEvent(ev, svg, zoom);
+      const { x, y } = svgCoordsFromEvent(ev, svg, zoom, pan);
       dispatch({ type: 'MOVE_ATOM', atomId: atom.id, x, y });
     }
 
@@ -102,7 +113,7 @@ export default function AtomNode({
       window.removeEventListener('mouseup', onMouseUp);
 
       if (hasDragged.current) {
-        const { x, y } = svgCoordsFromEvent(ev, svg, zoom);
+        const { x, y } = svgCoordsFromEvent(ev, svg, zoom, pan);
         onDragEnd(x, y);
       }
 
@@ -136,7 +147,7 @@ export default function AtomNode({
       onMouseDown={handleMouseDown}
       onMouseEnter={onMouseEnter}
       onMouseLeave={onMouseLeave}
-      style={{ cursor: 'pointer' }}
+      style={{ cursor: mode === 'select' ? 'pointer' : 'pointer' }}
     >
       {/* Anel laranja tracejado — átomo é a origem de uma ligação em andamento */}
       {isBondingFrom && (

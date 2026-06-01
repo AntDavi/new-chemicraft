@@ -1,12 +1,11 @@
 // SVG interativo que renderiza o grafo molecular (átomos + ligações).
-// Gerencia cliques (colocar átomo, criar ligação, selecionar), preview de
-// ligação em andamento, delete via teclado e pan (arrastar fundo) do canvas.
+// Gerencia cliques, preview de ligação, delete via teclado e pan do canvas.
+// Respeita o modo global: 'select' (selecionar + pan) | 'edit' (editar molécula).
 
 'use client';
 
 import { useRef, useState, useCallback, useEffect } from 'react';
 import { useMoleculeEditor } from './MoleculeEditor';
-import { Bond, Atom } from '../lib/moleculeGraph';
 import { getAvailableValence, bondOrder } from '../lib/valenceCalculator';
 import AtomNode from './AtomNode';
 import BondEdge from './BondEdge';
@@ -18,37 +17,47 @@ import FormulaLabel from './FormulaLabel';
 
 export default function Canvas() {
   const { state, dispatch } = useMoleculeEditor();
-  const { graph, activeAtomSymbol, activeBondType, bondingFrom, selectedAtomId, zoom } = state;
+  const { graph, mode, activeAtomSymbol, activeBondType, bondingFrom, selectedAtomId, zoom, pan } = state;
 
   const svgRef = useRef<SVGSVGElement>(null);
 
-  // Posição do mouse em coordenadas SVG — usado para o preview de ligação
+  // Posição do mouse em coordenadas de conteúdo — usado para o preview de ligação
   const [mousePos, setMousePos] = useState<{ x: number; y: number } | null>(null);
 
   // Átomo atualmente sob o cursor (só usado durante o modo de ligação)
   const [hoveredAtomId, setHoveredAtomId] = useState<string | null>(null);
 
-  // Pan do canvas — deslocamento em pixels SVG viewport
-  const [pan, setPan] = useState({ x: 0, y: 0 });
-  // Ref para detectar se o mousedown resultou em pan (evita disparar PLACE_ATOM / DESELECT_ATOM)
+  // Ref para detectar se o mousedown resultou em pan (evita disparar ações de click)
   const hasPannedRef = useRef(false);
 
   // -------------------------------------------------------------------------
-  // Delete / Backspace — remove átomo selecionado
+  // Delete / Backspace — remove átomo selecionado (apenas modo edit)
   // -------------------------------------------------------------------------
 
   useEffect(() => {
     const onKeyDown = (e: KeyboardEvent) => {
-      if ((e.key === 'Delete' || e.key === 'Backspace') && selectedAtomId) {
+      if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement) return;
+
+      if ((e.key === 'Delete' || e.key === 'Backspace') && selectedAtomId && mode === 'edit') {
         dispatch({ type: 'DELETE_ATOM', atomId: selectedAtomId });
+        return;
+      }
+
+      if (e.key === 'i' || e.key === 'I') {
+        dispatch({ type: 'SET_MODE', mode: 'edit' });
+        return;
+      }
+
+      if (e.key === 'Escape') {
+        dispatch({ type: 'SET_MODE', mode: 'select' });
       }
     };
     window.addEventListener('keydown', onKeyDown);
     return () => window.removeEventListener('keydown', onKeyDown);
-  }, [selectedAtomId, dispatch]);
+  }, [selectedAtomId, mode, dispatch]);
 
   // -------------------------------------------------------------------------
-  // Conversão de coordenadas tela → SVG (desconta zoom)
+  // Conversão de coordenadas tela → conteúdo (desconta pan e zoom)
   // -------------------------------------------------------------------------
 
   const toSVGCoords = useCallback(
@@ -65,7 +74,7 @@ export default function Canvas() {
   );
 
   // -------------------------------------------------------------------------
-  // Preview de ligação em andamento — atualiza mousePos via onMouseMove do SVG
+  // Preview de ligação em andamento
   // -------------------------------------------------------------------------
 
   const handleSVGMouseMove = useCallback(
@@ -76,13 +85,14 @@ export default function Canvas() {
   );
 
   // -------------------------------------------------------------------------
-  // Pan — mousedown no fundo do SVG em modo padrão inicia pan
+  // Pan — inicia no mousedown do fundo do SVG
+  // No modo select: sempre permite pan
+  // No modo edit: só quando nenhuma ferramenta está ativa
   // -------------------------------------------------------------------------
 
   const handleSVGMouseDown = useCallback(
     (e: React.MouseEvent<SVGSVGElement>) => {
-      // Pan só acontece em modo padrão (sem átomo ativo, sem ligação em andamento)
-      if (activeAtomSymbol !== null || bondingFrom !== null) return;
+      if (mode === 'edit' && (activeAtomSymbol !== null || bondingFrom !== null)) return;
 
       hasPannedRef.current = false;
       const startClientX = e.clientX;
@@ -97,7 +107,7 @@ export default function Canvas() {
         const dy = ev.clientY - startClientY;
         if (!hasPannedRef.current && Math.sqrt(dx * dx + dy * dy) < THRESHOLD) return;
         hasPannedRef.current = true;
-        setPan({ x: startPanX + dx, y: startPanY + dy });
+        dispatch({ type: 'SET_PAN', x: startPanX + dx, y: startPanY + dy });
       }
 
       function onMouseUp() {
@@ -108,22 +118,26 @@ export default function Canvas() {
       window.addEventListener('mousemove', onMouseMove);
       window.addEventListener('mouseup', onMouseUp);
     },
-    [activeAtomSymbol, bondingFrom, pan.x, pan.y],
+    [mode, activeAtomSymbol, bondingFrom, pan.x, pan.y, dispatch],
   );
 
   // -------------------------------------------------------------------------
   // Clique em área vazia do SVG
-  // (átomos chamam e.stopPropagation(), então este handler só dispara no fundo)
   // -------------------------------------------------------------------------
 
   const handleSVGClick = useCallback(
     (e: React.MouseEvent<SVGSVGElement>) => {
-      // Se o mousedown resultou em pan, ignora o click
       if (hasPannedRef.current) {
         hasPannedRef.current = false;
         return;
       }
 
+      if (mode === 'select') {
+        dispatch({ type: 'DESELECT_ATOM' });
+        return;
+      }
+
+      // Modo edit
       const { x, y } = toSVGCoords(e);
 
       if (bondingFrom !== null) {
@@ -138,15 +152,26 @@ export default function Canvas() {
 
       dispatch({ type: 'DESELECT_ATOM' });
     },
-    [bondingFrom, activeAtomSymbol, dispatch, toSVGCoords],
+    [mode, bondingFrom, activeAtomSymbol, dispatch, toSVGCoords],
   );
 
   // -------------------------------------------------------------------------
-  // Clique em átomo — chamado pelo AtomNode via prop onClick
+  // Clique em átomo
   // -------------------------------------------------------------------------
 
   const handleAtomClick = useCallback(
     (atomId: string) => {
+      // Modo select: sempre seleciona / deseleciona
+      if (mode === 'select') {
+        if (selectedAtomId === atomId) {
+          dispatch({ type: 'DESELECT_ATOM' });
+        } else {
+          dispatch({ type: 'SELECT_ATOM', atomId });
+        }
+        return;
+      }
+
+      // Modo edit: fluxo de ligação e seleção
       if (bondingFrom !== null) {
         if (bondingFrom === atomId) {
           dispatch({ type: 'CANCEL_BOND' });
@@ -161,16 +186,20 @@ export default function Canvas() {
         return;
       }
 
+      // Em edit mode sem ferramenta ativa: seleciona/deseleciona (para poder deletar)
       if (selectedAtomId === atomId) {
         dispatch({ type: 'DESELECT_ATOM' });
       } else {
         dispatch({ type: 'SELECT_ATOM', atomId });
       }
     },
-    [bondingFrom, activeAtomSymbol, selectedAtomId, dispatch],
+    [mode, bondingFrom, activeAtomSymbol, selectedAtomId, dispatch],
   );
 
-  // Retorna true se o átomo for um alvo inválido para a ligação em andamento
+  // -------------------------------------------------------------------------
+  // Validade do alvo de ligação (feedback vermelho)
+  // -------------------------------------------------------------------------
+
   const isBondTargetInvalid = useCallback(
     (atomId: string): boolean => {
       if (!bondingFrom || atomId === bondingFrom || hoveredAtomId !== atomId) return false;
@@ -188,13 +217,14 @@ export default function Canvas() {
   // -------------------------------------------------------------------------
 
   const cursor =
-    activeAtomSymbol !== null
+    mode === 'select'
+      ? 'default'
+      : activeAtomSymbol !== null
       ? 'crosshair'
       : bondingFrom !== null
       ? 'cell'
       : 'grab';
 
-  // Átomo de origem da ligação (para a linha de preview)
   const bondingAtom = bondingFrom ? graph.atoms.find((a) => a.id === bondingFrom) : null;
 
   // -------------------------------------------------------------------------
@@ -216,7 +246,7 @@ export default function Canvas() {
         backgroundSize: '24px 24px',
       }}
     >
-      {/* Fundo clicável — garante que cliques em área vazia disparem onClick do SVG */}
+      {/* Fundo clicável */}
       <rect width="100%" height="100%" fill="transparent" />
 
       <g transform={`translate(${pan.x},${pan.y}) scale(${zoom})`}>

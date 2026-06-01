@@ -22,23 +22,28 @@ import TopBar from './TopBar';
 // ---------------------------------------------------------------------------
 
 export type BondType = 'single' | 'double' | 'triple';
+export type EditorMode = 'select' | 'edit';
 
 export interface EditorState {
   graph: MoleculeGraph;
+  mode: EditorMode;
   activeAtomSymbol: string | null;
   activeBondType: BondType;
   bondingFrom: string | null;
   selectedAtomId: string | null;
   zoom: number;
+  pan: { x: number; y: number };
 }
 
 const initialState: EditorState = {
   graph: { atoms: [], bonds: [] },
+  mode: 'edit',
   activeAtomSymbol: null,
   activeBondType: 'single',
   bondingFrom: null,
   selectedAtomId: null,
   zoom: 1,
+  pan: { x: 0, y: 0 },
 };
 
 // ---------------------------------------------------------------------------
@@ -46,6 +51,7 @@ const initialState: EditorState = {
 // ---------------------------------------------------------------------------
 
 export type Action =
+  | { type: 'SET_MODE'; mode: EditorMode }
   | { type: 'SET_ACTIVE_ATOM'; symbol: string | null }
   | { type: 'SET_BOND_TYPE'; bondType: BondType }
   | { type: 'PLACE_ATOM'; symbol: string; x: number; y: number }
@@ -58,6 +64,7 @@ export type Action =
   | { type: 'DELETE_ATOM'; atomId: string }
   | { type: 'ZOOM_IN' }
   | { type: 'ZOOM_OUT' }
+  | { type: 'SET_PAN'; x: number; y: number }
   | { type: 'CLEAR' };
 
 // ---------------------------------------------------------------------------
@@ -70,6 +77,18 @@ const ZOOM_MAX = 3;
 
 function reducer(state: EditorState, action: Action): EditorState {
   switch (action.type) {
+    case 'SET_MODE':
+      return {
+        ...state,
+        mode: action.mode,
+        // Ao entrar em select, limpa ferramentas ativas
+        activeAtomSymbol: action.mode === 'select' ? null : state.activeAtomSymbol,
+        bondingFrom: action.mode === 'select' ? null : state.bondingFrom,
+      };
+
+    case 'SET_PAN':
+      return { ...state, pan: { x: action.x, y: action.y } };
+
     case 'SET_ACTIVE_ATOM':
       return { ...state, activeAtomSymbol: action.symbol };
 
@@ -187,8 +206,11 @@ export function useMoleculeEditor(): MoleculeEditorContextValue {
 function EditorLayout() {
   const { state, dispatch } = useMoleculeEditor();
 
-  // AtomInfoCard só aparece fora do modo de criação de ligações
-  const infoAtomId = state.bondingFrom === null ? state.selectedAtomId : null;
+  // AtomInfoCard só aparece no modo select e fora do modo de criação de ligações
+  const infoAtomId =
+    state.mode === 'select' && state.bondingFrom === null
+      ? state.selectedAtomId
+      : null;
 
   return (
     <div className="flex flex-col h-screen bg-stone-50 text-stone-900">

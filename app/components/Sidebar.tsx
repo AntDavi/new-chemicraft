@@ -11,6 +11,7 @@ import { BondType } from './MoleculeEditor';
 
 export default function Sidebar() {
   const { state, dispatch } = useMoleculeEditor();
+  const isSelectMode = state.mode === 'select';
 
   function handleAtomSelect(symbol: string) {
     const next = state.activeAtomSymbol === symbol ? null : symbol;
@@ -23,8 +24,8 @@ export default function Sidebar() {
 
   return (
     <aside className="hidden sm:flex h-full w-16 flex-col border-r border-stone-200 bg-white shrink-0">
-      {/* Seção átomos */}
-      <div className="flex-1 overflow-y-auto">
+      {/* Seção átomos — desabilitada no modo select */}
+      <div className={`flex-1 overflow-y-auto transition-opacity ${isSelectMode ? 'opacity-40 pointer-events-none' : ''}`}>
         <p className="pt-3 pb-1 text-center text-[9px] font-semibold tracking-widest uppercase text-stone-400 select-none">
           Átomo
         </p>
@@ -36,8 +37,8 @@ export default function Sidebar() {
 
       <hr className="mx-3 border-stone-200" />
 
-      {/* Seção ligações */}
-      <div>
+      {/* Seção ligações — desabilitada no modo select */}
+      <div className={`transition-opacity ${isSelectMode ? 'opacity-40 pointer-events-none' : ''}`}>
         <p className="pt-3 pb-1 text-center text-[9px] font-semibold tracking-widest uppercase text-stone-400 select-none">
           Ligação
         </p>
