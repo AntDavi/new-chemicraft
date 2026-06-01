@@ -250,11 +250,11 @@
 
 ## FASE 12 — lib/moleculeComparator.ts
 
-- [ ] Definir interface `MoleculeDiff`: `missingAtoms`, `extraAtoms`, `wrongAtoms`, `missingBonds`, `wrongBondTypes`, `isCorrect`
-- [ ] Implementar `compareMolecules(current: MoleculeGraph, target: MoleculeGraph): MoleculeDiff`
-- [ ] Comparar por **tipo e quantidade** de átomos e tipo de ligações — **nunca por posição no canvas**
-- [ ] `isCorrect = true` somente quando todas as diferenças forem zero
-- [ ] Commitar: `feat: lib/moleculeComparator — comparação por conectividade`
+- [x] Definir interface `MoleculeDiff`: `missingAtoms`, `extraAtoms`, `wrongAtoms`, `missingBonds`, `wrongBondTypes`, `isCorrect`
+- [x] Implementar `compareMolecules(current: MoleculeGraph, target: MoleculeGraph): MoleculeDiff`
+- [x] Comparar por **tipo e quantidade** de átomos e tipo de ligações — **nunca por posição no canvas**
+- [x] `isCorrect = true` somente quando todas as diferenças forem zero
+- [x] Commitar: `feat: lib/moleculeComparator — comparação por conectividade`
 
 ---
 
