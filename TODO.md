@@ -237,6 +237,110 @@
 
 ---
 
+---
+
+## FASE 11 — lib/challengeDatabase.ts
+
+- [ ] Definir interface `Challenge`: `id`, `name`, `formula`, `targetGraph` (só conectividade, sem posições x/y), `initialHint`, `difficulty`
+- [ ] Implementar array de desafios: H₂O (iniciante), CH₄ (iniciante), NH₃ (iniciante), CO₂ (intermediário), C₂H₆O (intermediário), C₆H₁₂O₆ (avançado), C₁₀H₂₀O Mentol (avançado)
+- [ ] Exportar `getChallengeById(id): Challenge | null` e `getAllChallenges(): Challenge[]`
+- [ ] Commitar: `feat: lib/challengeDatabase — desafios do MVP`
+
+---
+
+## FASE 12 — lib/moleculeComparator.ts
+
+- [ ] Definir interface `MoleculeDiff`: `missingAtoms`, `extraAtoms`, `wrongAtoms`, `missingBonds`, `wrongBondTypes`, `isCorrect`
+- [ ] Implementar `compareMolecules(current: MoleculeGraph, target: MoleculeGraph): MoleculeDiff`
+- [ ] Comparar por **tipo e quantidade** de átomos e tipo de ligações — **nunca por posição no canvas**
+- [ ] `isCorrect = true` somente quando todas as diferenças forem zero
+- [ ] Commitar: `feat: lib/moleculeComparator — comparação por conectividade`
+
+---
+
+## FASE 13 — lib/aiPromptBuilder.ts
+
+- [ ] Implementar `buildAnalysisPrompt(challenge: Challenge, currentGraph: MoleculeGraph, diff: MoleculeDiff): string`
+- [ ] Prompt deve instruir o modelo a responder em exatamente 3 frases: (1) reforçar o que está certo, (2) apontar o erro principal, (3) dar uma dica sem entregar a resposta
+- [ ] Prompt deve ser em português e incluir contexto do desafio e da diferença atual
+- [ ] Commitar: `feat: lib/aiPromptBuilder — construção de prompt para a IA`
+
+---
+
+## FASE 14 — app/api/analyze/route.ts
+
+- [ ] Criar rota POST em `app/api/analyze/route.ts`
+- [ ] Recebe body `{ challengeId: string, currentGraph: MoleculeGraph }`
+- [ ] Busca challenge via `getChallengeById`, compara via `compareMolecules`, constrói prompt via `buildAnalysisPrompt`
+- [ ] Chama Anthropic API com modelo `claude-sonnet-4-20250514`, `max_tokens: 300`
+- [ ] Retorna `{ feedback: string, isCorrect: boolean }`
+- [ ] Criar `.env.local` com `ANTHROPIC_API_KEY=` se não existir (não commitar)
+- [ ] Tratamento de erro: se `ANTHROPIC_API_KEY` ausente → retorna 500 sem quebrar o frontend
+- [ ] Commitar: `feat: api/analyze — rota POST com Anthropic`
+
+---
+
+## FASE 15 — Novas actions no reducer do MoleculeEditor
+
+- [ ] Adicionar novos campos ao `EditorState`: `activeChallenge`, `challengeStatus`, `aiFeedback`, `isAnalyzing`
+- [ ] Implementar action `START_CHALLENGE`: define `activeChallenge`, limpa grafo, `challengeStatus → active`
+- [ ] Implementar action `REQUEST_ANALYSIS`: `isAnalyzing → true`
+- [ ] Implementar action `SET_AI_FEEDBACK`: adiciona feedback ao array, `isAnalyzing → false`
+- [ ] Implementar action `COMPLETE_CHALLENGE`: `challengeStatus → completed`
+- [ ] Disparar `COMPLETE_CHALLENGE` automaticamente quando `isCorrect === true` na resposta da API
+- [ ] Commitar: `feat: MoleculeEditor — actions de desafio e IA`
+
+---
+
+## FASE 16 — components/ChallengePanel.tsx
+
+- [ ] Props: `challenge`, `challengeStatus`, `isAnalyzing`, `onAnalyze`, `onNewChallenge`
+- [ ] Exibe nome do desafio, fórmula alvo e dificuldade
+- [ ] Botão "Analisar" desabilitado enquanto `isAnalyzing === true`
+- [ ] Estado `completed`: celebração visual (ex.: confete ou banner) + botão "Próximo desafio"
+- [ ] Commitar: `feat: ChallengePanel — painel de desafio`
+
+---
+
+## FASE 17 — components/AIFeedbackPanel.tsx
+
+- [ ] Props: `feedback: string[]`, `isAnalyzing: boolean`
+- [ ] Lista feedbacks com o mais recente no topo
+- [ ] Estado de loading durante `isAnalyzing` (spinner ou skeleton)
+- [ ] Painel vazio exibe mensagem neutra "Construa a molécula e clique em Analisar"
+- [ ] Commitar: `feat: AIFeedbackPanel — painel de feedback da IA`
+
+---
+
+## FASE 18 — Tela de seleção de desafios
+
+- [ ] Criar `app/challenges/page.tsx` ou modal na página principal
+- [ ] Listar todos os desafios com nome, fórmula e badge de dificuldade
+- [ ] Botão "Iniciar" por desafio: despacha `START_CHALLENGE` e redireciona ao canvas
+- [ ] Commitar: `feat: challenges page — seleção de desafios`
+
+---
+
+## FASE 19 — Integração final do painel direito
+
+- [ ] Adicionar `ChallengePanel` + `AIFeedbackPanel` ao layout do `MoleculeEditor`
+- [ ] Painel direito visível **somente quando `activeChallenge !== null`**
+- [ ] Layout: painel direito ao lado do canvas (ou sobreposto em telas menores)
+- [ ] Commitar: `feat: integração painel direito — ChallengePanel + AIFeedbackPanel`
+
+---
+
+## FASE 20 — Testes manuais da IA
+
+- [ ] H₂O errado (H–H) → IA aponta o erro → corrigir → IA confirma
+- [ ] CH₄ com N em vez de C → IA identifica átomo errado
+- [ ] CO₂ com ligação simples → IA aponta tipo de ligação errado
+- [ ] Completar desafio → `challengeStatus === completed` → celebração aparece
+- [ ] `ANTHROPIC_API_KEY` ausente → erro 500 no servidor, frontend exibe mensagem amigável sem quebrar
+- [ ] Commitar: `test: testes manuais da IA tutora`
+
+---
+
 ## Backlog pós-MVP (não implementar agora)
 
 - Múltiplas moléculas independentes no mesmo canvas

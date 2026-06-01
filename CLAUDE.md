@@ -238,6 +238,94 @@ Lógica em `lib/formulaCalculator.ts`, chamada a cada mudança no grafo.
 
 ---
 
+## IA Tutora
+
+> Módulo de desafios com feedback gerado por IA. Depende do MVP estar completo (Fases 0–9).
+
+### Novos componentes
+
+| Arquivo | Responsabilidade |
+|---------|-----------------|
+| `app/components/ChallengePanel.tsx` | Exibe desafio ativo, status, botão Analisar e celebração ao completar |
+| `app/components/AIFeedbackPanel.tsx` | Histórico de feedbacks da sessão (mais recente no topo), loading state |
+
+### Novos arquivos lib
+
+| Arquivo | Responsabilidade |
+|---------|-----------------|
+| `app/lib/challengeDatabase.ts` | Array de desafios com id, name, formula, targetGraph (conectividade), initialHint, difficulty |
+| `app/lib/moleculeComparator.ts` | `compareMolecules(current, target): MoleculeDiff` — compara por tipo/qtd de átomos e tipo de ligações, **nunca por posição** |
+| `app/lib/aiPromptBuilder.ts` | `buildAnalysisPrompt(challenge, currentGraph, diff): string` — 3 frases: reforçar acerto, apontar erro principal, dar dica sem entregar resposta |
+
+### Nova rota de API
+
+`app/api/analyze/route.ts`
+- POST recebe `{ challengeId, currentGraph }`
+- Chama `moleculeComparator` + `aiPromptBuilder`
+- Chama Anthropic API com `claude-sonnet-4-20250514`, `max_tokens: 300`
+- Retorna `{ feedback: string, isCorrect: boolean }`
+
+### Variável de ambiente
+
+```
+ANTHROPIC_API_KEY=sk-...   # em .env.local (nunca commitar)
+```
+
+### Novos estados no reducer (MoleculeEditor)
+
+```typescript
+activeChallenge: Challenge | null   // desafio em andamento
+challengeStatus: 'idle' | 'active' | 'completed'
+aiFeedback: string[]                // histórico de feedbacks
+isAnalyzing: boolean                // aguardando resposta da API
+```
+
+### Novas actions
+
+| Action | Efeito |
+|--------|--------|
+| `START_CHALLENGE` | Define `activeChallenge`, limpa grafo, status → `active` |
+| `REQUEST_ANALYSIS` | `isAnalyzing → true` |
+| `SET_AI_FEEDBACK` | Adiciona feedback ao array, `isAnalyzing → false` |
+| `COMPLETE_CHALLENGE` | `challengeStatus → completed` (disparado automaticamente quando `isCorrect === true`) |
+
+### Layout atualizado
+
+Painel direito com `ChallengePanel` + `AIFeedbackPanel` aparece sobreposto ou ao lado do canvas **somente quando `activeChallenge !== null`**.
+
+### Gatilhos de feedback da IA
+
+- **Sob demanda:** botão "Analisar" no `ChallengePanel`
+- **Automático:** ao violar valência de um átomo
+- **Automático:** ao iniciar um desafio (`initialHint` pré-carregado)
+
+### Desafios do MVP
+
+| id | Fórmula | Dificuldade |
+|----|---------|-------------|
+| `h2o` | H₂O | iniciante |
+| `ch4` | CH₄ | iniciante |
+| `nh3` | NH₃ | iniciante |
+| `co2` | CO₂ | intermediário |
+| `c2h6o` | C₂H₆O | intermediário |
+| `c6h12o6` | C₆H₁₂O₆ | avançado |
+| `c10h20o` | C₁₀H₂₀O (Mentol) | avançado |
+
+### Tipo MoleculeDiff
+
+```typescript
+interface MoleculeDiff {
+  missingAtoms: { symbol: string; count: number }[];
+  extraAtoms: { symbol: string; count: number }[];
+  wrongAtoms: { symbol: string; count: number }[];
+  missingBonds: { type: BondType; count: number }[];
+  wrongBondTypes: { expected: BondType; got: BondType; count: number }[];
+  isCorrect: boolean;
+}
+```
+
+---
+
 ## Tropeços
 
 > Seção para registrar problemas reais encontrados durante a implementação. Começa vazia.
