@@ -241,10 +241,10 @@
 
 ## FASE 11 — lib/challengeDatabase.ts
 
-- [ ] Definir interface `Challenge`: `id`, `name`, `formula`, `targetGraph` (só conectividade, sem posições x/y), `initialHint`, `difficulty`
-- [ ] Implementar array de desafios: H₂O (iniciante), CH₄ (iniciante), NH₃ (iniciante), CO₂ (intermediário), C₂H₆O (intermediário), C₆H₁₂O₆ (avançado), C₁₀H₂₀O Mentol (avançado)
-- [ ] Exportar `getChallengeById(id): Challenge | null` e `getAllChallenges(): Challenge[]`
-- [ ] Commitar: `feat: lib/challengeDatabase — desafios do MVP`
+- [x] Definir interface `Challenge`: `id`, `name`, `formula`, `targetGraph` (só conectividade, sem posições x/y), `initialHint`, `difficulty`
+- [x] Implementar array de desafios: H₂O (iniciante), CH₄ (iniciante), NH₃ (iniciante), CO₂ (intermediário), C₂H₆O (intermediário), C₆H₁₂O₆ (avançado), C₁₀H₂₀O Mentol (avançado)
+- [x] Exportar `getChallengeById(id): Challenge | null` e `getAllChallenges(): Challenge[]`
+- [x] Commitar: `feat: lib/challengeDatabase — desafios do MVP`
 
 ---
 
