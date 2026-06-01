@@ -260,10 +260,10 @@
 
 ## FASE 13 — lib/aiPromptBuilder.ts
 
-- [ ] Implementar `buildAnalysisPrompt(challenge: Challenge, currentGraph: MoleculeGraph, diff: MoleculeDiff): string`
-- [ ] Prompt deve instruir o modelo a responder em exatamente 3 frases: (1) reforçar o que está certo, (2) apontar o erro principal, (3) dar uma dica sem entregar a resposta
-- [ ] Prompt deve ser em português e incluir contexto do desafio e da diferença atual
-- [ ] Commitar: `feat: lib/aiPromptBuilder — construção de prompt para a IA`
+- [x] Implementar `buildAnalysisPrompt(challenge: Challenge, currentGraph: MoleculeGraph, diff: MoleculeDiff): string`
+- [x] Prompt deve instruir o modelo a responder em exatamente 3 frases: (1) reforçar o que está certo, (2) apontar o erro principal, (3) dar uma dica sem entregar a resposta
+- [x] Prompt deve ser em português e incluir contexto do desafio e da diferença atual
+- [x] Commitar: `feat: lib/aiPromptBuilder — construção de prompt para a IA`
 
 ---
 
