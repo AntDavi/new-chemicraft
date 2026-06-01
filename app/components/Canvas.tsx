@@ -204,12 +204,17 @@ export default function Canvas() {
   return (
     <svg
       ref={svgRef}
-      className="w-full h-full bg-zinc-900"
+      className="w-full h-full"
       onClick={handleSVGClick}
       onMouseDown={handleSVGMouseDown}
       onMouseMove={handleSVGMouseMove}
       onMouseLeave={() => setMousePos(null)}
-      style={{ cursor }}
+      style={{
+        cursor,
+        backgroundColor: '#F5F0E8',
+        backgroundImage: 'radial-gradient(circle, #C4BFB3 1px, transparent 1px)',
+        backgroundSize: '24px 24px',
+      }}
     >
       {/* Fundo clicável — garante que cliques em área vazia disparem onClick do SVG */}
       <rect width="100%" height="100%" fill="transparent" />
@@ -230,7 +235,7 @@ export default function Canvas() {
             y1={bondingAtom.y}
             x2={mousePos.x}
             y2={mousePos.y}
-            stroke="#a1a1aa"
+            stroke="#6b7280"
             strokeWidth={1.5}
             strokeDasharray="5,4"
             pointerEvents="none"

@@ -42,7 +42,7 @@ export default function BondEdge({ bond, fromAtom, toAtom }: BondEdgeProps) {
   const ay2 = y2 - uy * ATOM_RADIUS;
 
   const base = {
-    stroke: '#4b5563',
+    stroke: '#374151',
     strokeWidth: 2,
     strokeLinecap: 'round' as const,
   };

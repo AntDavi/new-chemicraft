@@ -15,6 +15,7 @@ import Sidebar from './Sidebar';
 import Canvas from './Canvas';
 import AtomInfoCard from './AtomInfoCard';
 import BottomBar from './BottomBar';
+import TopBar from './TopBar';
 
 // ---------------------------------------------------------------------------
 // Estado
@@ -190,7 +191,10 @@ function EditorLayout() {
   const infoAtomId = state.bondingFrom === null ? state.selectedAtomId : null;
 
   return (
-    <div className="flex flex-col h-screen bg-zinc-900 text-zinc-100">
+    <div className="flex flex-col h-screen bg-stone-50 text-stone-900">
+      {/* Barra de topo */}
+      <TopBar />
+
       {/* Área principal: sidebar + canvas */}
       <div className="flex flex-1 overflow-hidden">
         <Sidebar />
@@ -200,10 +204,15 @@ function EditorLayout() {
       {/* Barra inferior: AtomInfoCard (esquerda) + BottomBar (direita) */}
       <div className="flex">
         <div className="flex-1 overflow-hidden">
-          <AtomInfoCard atomId={infoAtomId} graph={state.graph} />
+          <AtomInfoCard
+            atomId={infoAtomId}
+            graph={state.graph}
+            onClose={() => dispatch({ type: 'DESELECT_ATOM' })}
+          />
         </div>
         <BottomBar
           hasAtoms={state.graph.atoms.length > 0}
+          zoom={state.zoom}
           onZoomIn={() => dispatch({ type: 'ZOOM_IN' })}
           onZoomOut={() => dispatch({ type: 'ZOOM_OUT' })}
           onClear={() => dispatch({ type: 'CLEAR' })}

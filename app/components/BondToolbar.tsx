@@ -47,7 +47,7 @@ function BondIcon({ lines }: { lines: number }) {
 
 export default function BondToolbar({ activeBondType, onChange }: BondToolbarProps) {
   return (
-    <div className="flex flex-col items-center gap-1 py-2">
+    <div className="flex flex-col items-center gap-1 pb-3">
       {BOND_OPTIONS.map(({ type, title, lines }) => {
         const isActive = type === activeBondType;
 
@@ -57,12 +57,11 @@ export default function BondToolbar({ activeBondType, onChange }: BondToolbarPro
             title={title}
             onClick={() => onChange(type)}
             className={cn(
-              'flex size-11 cursor-pointer items-center justify-center rounded-md',
+              'flex size-10 cursor-pointer items-center justify-center rounded-md',
               'transition-all duration-150 select-none',
-              'hover:bg-white/20 hover:scale-110',
               isActive
-                ? 'bg-white/30 ring-2 ring-white ring-offset-1 ring-offset-transparent scale-110 text-white'
-                : 'text-zinc-400',
+                ? 'bg-stone-200 text-stone-700 ring-1 ring-stone-400'
+                : 'text-stone-400 hover:bg-stone-100 hover:text-stone-600',
             )}
           >
             <BondIcon lines={lines} />

@@ -170,15 +170,15 @@ export default function AtomNode({
       )}
 
       {/* Círculo principal */}
-      <circle r={ATOM_RADIUS} fill={color} stroke="#1f2937" strokeWidth={1.5} />
+      <circle r={ATOM_RADIUS} fill={color} stroke="#d1d5db" strokeWidth={1} />
 
       {/* Símbolo */}
       <text
         textAnchor="middle"
         dominantBaseline="central"
         fontSize={atom.symbol.length > 1 ? 11 : 13}
-        fontWeight="600"
-        fill="#ffffff"
+        fontWeight="700"
+        fill="#1f2937"
         pointerEvents="none"
         style={{ userSelect: 'none' }}
       >

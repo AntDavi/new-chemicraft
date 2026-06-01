@@ -1,6 +1,6 @@
 // Paleta de átomos da sidebar esquerda. Renderiza um botão circular por átomo
-// disponível no atomData. Gerencia estados visuais: ativo (anel branco), hover
-// (zoom + brilho) e inativo. Componente puramente apresentacional via props.
+// disponível no atomData. Gerencia estados visuais: ativo (anel), hover (zoom)
+// e inativo. Exibe badge com a valência de cada átomo.
 
 'use client';
 
@@ -14,7 +14,7 @@ interface AtomPaletteProps {
 
 export default function AtomPalette({ activeSymbol, onSelect }: AtomPaletteProps) {
   return (
-    <div className="flex flex-col items-center gap-2 py-2">
+    <div className="flex flex-col items-center gap-2 pb-2">
       {atomData.map((atom) => {
         const isActive = atom.symbol === activeSymbol;
 
@@ -25,16 +25,20 @@ export default function AtomPalette({ activeSymbol, onSelect }: AtomPaletteProps
             onClick={() => onSelect(atom.symbol)}
             style={{ backgroundColor: atom.color }}
             className={cn(
-              'flex size-11 cursor-pointer items-center justify-center rounded-full',
-              'text-sm font-bold text-white select-none',
+              'relative flex size-10 cursor-pointer items-center justify-center rounded-full',
+              'text-sm font-bold text-stone-800 select-none',
               'transition-all duration-150',
-              'hover:brightness-125 hover:scale-110',
+              'hover:scale-110 hover:brightness-95',
               isActive
-                ? 'ring-2 ring-white ring-offset-2 ring-offset-transparent scale-110'
+                ? 'ring-2 ring-stone-600 ring-offset-2 ring-offset-white scale-110'
                 : 'ring-0',
             )}
           >
             {atom.symbol}
+            {/* Badge de valência */}
+            <span className="absolute bottom-0 right-0 flex h-3.5 w-3.5 items-center justify-center rounded-full border border-stone-300 bg-white text-[8px] font-bold leading-none text-stone-500">
+              {atom.valency}
+            </span>
           </button>
         );
       })}

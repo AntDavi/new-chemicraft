@@ -200,17 +200,17 @@
 - [x] **Clique fora de átomo**
   Canvas recebe `onClick` → se alvo for o próprio SVG (não um átomo) → `DESELECT_ATOM`.
 
-- [ ] Commitar: `feat: interaction guards and keyboard shortcuts`
+- [x] Commitar: `feat: interaction guards and keyboard shortcuts`
 
 ---
 
 ## FASE 8 — Estilo final
 
-- [ ] Aplicar design definido no Claude para refinamento visual (ver prompt de design)
-- [ ] Garantir que cores dos átomos no canvas batem com `atomData.ts`
-- [ ] Responsividade básica: sidebar colapsa em tela menor que 640px (mobile fora do escopo do MVP, mas não quebrar)
-- [ ] Favicon e `<title>` da página
-- [ ] Commitar: `style: apply final design tokens`
+- [x] Aplicar design definido no Claude para refinamento visual (ver prompt de design)
+- [x] Garantir que cores dos átomos no canvas batem com `atomData.ts`
+- [x] Responsividade básica: sidebar colapsa em tela menor que 640px (mobile fora do escopo do MVP, mas não quebrar)
+- [x] Favicon e `<title>` da página
+- [x] Commitar: `style: apply final design tokens`
 
 ---
 

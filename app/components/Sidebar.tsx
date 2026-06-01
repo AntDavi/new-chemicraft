@@ -22,20 +22,30 @@ export default function Sidebar() {
   }
 
   return (
-    <aside className="flex h-full w-14 flex-col border-r border-zinc-700 bg-zinc-800">
+    <aside className="hidden sm:flex h-full w-16 flex-col border-r border-stone-200 bg-white shrink-0">
+      {/* Seção átomos */}
       <div className="flex-1 overflow-y-auto">
+        <p className="pt-3 pb-1 text-center text-[9px] font-semibold tracking-widest uppercase text-stone-400 select-none">
+          Átomo
+        </p>
         <AtomPalette
           activeSymbol={state.activeAtomSymbol}
           onSelect={handleAtomSelect}
         />
       </div>
 
-      <hr className="mx-2 border-zinc-600" />
+      <hr className="mx-3 border-stone-200" />
 
-      <BondToolbar
-        activeBondType={state.activeBondType}
-        onChange={handleBondChange}
-      />
+      {/* Seção ligações */}
+      <div>
+        <p className="pt-3 pb-1 text-center text-[9px] font-semibold tracking-widest uppercase text-stone-400 select-none">
+          Ligação
+        </p>
+        <BondToolbar
+          activeBondType={state.activeBondType}
+          onChange={handleBondChange}
+        />
+      </div>
     </aside>
   );
 }
