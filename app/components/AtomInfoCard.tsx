@@ -2,11 +2,11 @@
 // Oculta por padrão (h-0); desliza para cima quando atomId é fornecido.
 // Nunca deve ser exibida durante o modo de criação de ligações (bondingFrom !== null).
 
-'use client';
+"use client";
 
-import { atomData } from '../lib/atomData';
-import { MoleculeGraph } from '../lib/moleculeGraph';
-import { getAvailableValence, getUsedValence } from '../lib/valenceCalculator';
+import { atomData } from "../lib/atomData";
+import { MoleculeGraph } from "../lib/moleculeGraph";
+import { getAvailableValence, getUsedValence } from "../lib/valenceCalculator";
 
 interface AtomInfoCardProps {
   atomId: string | null;
@@ -14,7 +14,11 @@ interface AtomInfoCardProps {
   onClose: () => void;
 }
 
-export default function AtomInfoCard({ atomId, graph, onClose }: AtomInfoCardProps) {
+export default function AtomInfoCard({
+  atomId,
+  graph,
+  onClose,
+}: AtomInfoCardProps) {
   const atom = atomId ? graph.atoms.find((a) => a.id === atomId) : null;
   const data = atom ? atomData.find((d) => d.symbol === atom.symbol) : null;
 
@@ -25,18 +29,22 @@ export default function AtomInfoCard({ atomId, graph, onClose }: AtomInfoCardPro
 
   // Cor do dot de valência disponível
   const dotColor =
-    availableValence > 0 ? '#3b82f6' : availableValence === 0 ? '#f59e0b' : '#ef4444';
+    availableValence > 0
+      ? "#3b82f6"
+      : availableValence === 0
+        ? "#f59e0b"
+        : "#ef4444";
 
   return (
     <div
       className={`overflow-hidden transition-all duration-200 ease-out ${
-        visible ? 'h-16 opacity-100' : 'h-0 opacity-0'
+        visible ? "h-16 opacity-100" : "h-0 opacity-0"
       }`}
     >
       <div
         className={`flex items-center gap-3 h-16 px-4 bg-white border-t border-stone-200
           transition-transform duration-200 ease-out
-          ${visible ? 'translate-y-0' : 'translate-y-full'}`}
+          ${visible ? "translate-y-0" : "translate-y-full"}`}
       >
         {atom && data && (
           <>
@@ -50,7 +58,7 @@ export default function AtomInfoCard({ atomId, graph, onClose }: AtomInfoCardPro
             </div>
 
             {/* ELEMENTO */}
-            <div className="flex flex-col min-w-[96px]">
+            <div className="flex flex-col min-w-24">
               <span className="text-[9px] font-semibold tracking-widest uppercase text-stone-400">
                 Elemento
               </span>
@@ -65,7 +73,7 @@ export default function AtomInfoCard({ atomId, graph, onClose }: AtomInfoCardPro
             <div className="h-8 w-px bg-stone-200 shrink-0" />
 
             {/* VALÊNCIA TOTAL */}
-            <div className="flex flex-col items-center min-w-[64px]">
+            <div className="flex flex-col items-center min-w-16">
               <span className="text-[9px] font-semibold tracking-widest uppercase text-stone-400">
                 Val. Total
               </span>
@@ -73,14 +81,16 @@ export default function AtomInfoCard({ atomId, graph, onClose }: AtomInfoCardPro
                 <span className="text-stone-800 text-xl font-bold leading-none">
                   {data.valency}
                 </span>
-                <span className="text-stone-400 text-[9px] leading-none">ligações</span>
+                <span className="text-stone-400 text-[9px] leading-none">
+                  ligações
+                </span>
               </div>
             </div>
 
             <div className="h-8 w-px bg-stone-200 shrink-0" />
 
             {/* VALÊNCIA DISPONÍVEL */}
-            <div className="flex flex-col items-center min-w-[72px]">
+            <div className="flex flex-col items-center min-w-18">
               <span className="text-[9px] font-semibold tracking-widest uppercase text-stone-400">
                 Val. Disp.
               </span>
@@ -91,12 +101,14 @@ export default function AtomInfoCard({ atomId, graph, onClose }: AtomInfoCardPro
                 />
                 <span
                   className={`text-xl font-bold leading-none ${
-                    isOver ? 'text-red-500' : 'text-stone-800'
+                    isOver ? "text-red-500" : "text-stone-800"
                   }`}
                 >
                   {availableValence}
                 </span>
-                <span className="text-stone-400 text-[9px] leading-none">disp.</span>
+                <span className="text-stone-400 text-[9px] leading-none">
+                  disp.
+                </span>
               </div>
             </div>
 
@@ -116,9 +128,9 @@ export default function AtomInfoCard({ atomId, graph, onClose }: AtomInfoCardPro
                       className={`flex-1 h-2 rounded-full transition-colors ${
                         filled
                           ? isOver
-                            ? 'bg-red-400'
-                            : 'bg-blue-500'
-                          : 'bg-stone-200'
+                            ? "bg-red-400"
+                            : "bg-blue-500"
+                          : "bg-stone-200"
                       }`}
                     />
                   );
