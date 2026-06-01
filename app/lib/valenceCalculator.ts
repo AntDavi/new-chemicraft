@@ -4,7 +4,7 @@
 import { atomData } from './atomData';
 import { MoleculeGraph } from './moleculeGraph';
 
-const bondOrder: Record<'single' | 'double' | 'triple', number> = {
+export const bondOrder: Record<'single' | 'double' | 'triple', number> = {
   single: 1,
   double: 2,
   triple: 3,

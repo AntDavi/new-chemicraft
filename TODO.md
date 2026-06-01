@@ -180,21 +180,24 @@
 
 ## FASE 7 — Interações pendentes
 
-- [ ] **Drag de átomos no canvas**  
+- [x] **Drag de átomos no canvas**  
   Ao segurar e mover um átomo → despacha `MOVE_ATOM` com nova posição.  
   Garantir que drag não dispara `SELECT_ATOM` ao soltar.
 
-- [ ] **Prevenção de ligação inválida**  
+- [x] **Prevenção de ligação inválida**  
   Não permitir ligação se `getAvailableValence` de qualquer um dos dois átomos < ordem da ligação escolhida.  
   Feedback visual: átomo destino fica vermelho ao passar por cima quando inválido.
 
-- [ ] **Prevenção de ligação duplicada**  
+- [x] **Prevenção de ligação duplicada**
   Não permitir segunda ligação entre o mesmo par de átomos no MVP.
 
-- [ ] **Tecla Delete / Backspace**  
+- [x] **Tecla Delete / Backspace**
   Se `selectedAtomId` preenchido → despacha `DELETE_ATOM`.
 
-- [ ] **Clique fora de átomo**  
+- [x] **Movimentar Canvas**
+  Se `selectedAtomId` vazio → movimentar `Canva` para reposicionar x e y.
+
+- [x] **Clique fora de átomo**
   Canvas recebe `onClick` → se alvo for o próprio SVG (não um átomo) → `DESELECT_ATOM`.
 
 - [ ] Commitar: `feat: interaction guards and keyboard shortcuts`

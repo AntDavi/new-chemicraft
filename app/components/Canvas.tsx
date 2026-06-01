@@ -1,13 +1,13 @@
 // SVG interativo que renderiza o grafo molecular (átomos + ligações).
 // Gerencia cliques (colocar átomo, criar ligação, selecionar), preview de
-// ligação em andamento e delete via teclado. O drag dos átomos é encapsulado
-// em AtomNode — Canvas apenas recebe onDragEnd para eventual cleanup futuro.
+// ligação em andamento, delete via teclado e pan (arrastar fundo) do canvas.
 
 'use client';
 
 import { useRef, useState, useCallback, useEffect } from 'react';
 import { useMoleculeEditor } from './MoleculeEditor';
 import { Bond, Atom } from '../lib/moleculeGraph';
+import { getAvailableValence, bondOrder } from '../lib/valenceCalculator';
 import AtomNode from './AtomNode';
 import BondEdge from './BondEdge';
 import FormulaLabel from './FormulaLabel';
@@ -18,12 +18,20 @@ import FormulaLabel from './FormulaLabel';
 
 export default function Canvas() {
   const { state, dispatch } = useMoleculeEditor();
-  const { graph, activeAtomSymbol, bondingFrom, selectedAtomId, zoom } = state;
+  const { graph, activeAtomSymbol, activeBondType, bondingFrom, selectedAtomId, zoom } = state;
 
   const svgRef = useRef<SVGSVGElement>(null);
 
   // Posição do mouse em coordenadas SVG — usado para o preview de ligação
   const [mousePos, setMousePos] = useState<{ x: number; y: number } | null>(null);
+
+  // Átomo atualmente sob o cursor (só usado durante o modo de ligação)
+  const [hoveredAtomId, setHoveredAtomId] = useState<string | null>(null);
+
+  // Pan do canvas — deslocamento em pixels SVG viewport
+  const [pan, setPan] = useState({ x: 0, y: 0 });
+  // Ref para detectar se o mousedown resultou em pan (evita disparar PLACE_ATOM / DESELECT_ATOM)
+  const hasPannedRef = useRef(false);
 
   // -------------------------------------------------------------------------
   // Delete / Backspace — remove átomo selecionado
@@ -49,11 +57,11 @@ export default function Canvas() {
       if (!svg) return { x: 0, y: 0 };
       const rect = svg.getBoundingClientRect();
       return {
-        x: (e.clientX - rect.left) / zoom,
-        y: (e.clientY - rect.top) / zoom,
+        x: (e.clientX - rect.left - pan.x) / zoom,
+        y: (e.clientY - rect.top - pan.y) / zoom,
       };
     },
-    [zoom],
+    [zoom, pan],
   );
 
   // -------------------------------------------------------------------------
@@ -68,12 +76,54 @@ export default function Canvas() {
   );
 
   // -------------------------------------------------------------------------
+  // Pan — mousedown no fundo do SVG em modo padrão inicia pan
+  // -------------------------------------------------------------------------
+
+  const handleSVGMouseDown = useCallback(
+    (e: React.MouseEvent<SVGSVGElement>) => {
+      // Pan só acontece em modo padrão (sem átomo ativo, sem ligação em andamento)
+      if (activeAtomSymbol !== null || bondingFrom !== null) return;
+
+      hasPannedRef.current = false;
+      const startClientX = e.clientX;
+      const startClientY = e.clientY;
+      const startPanX = pan.x;
+      const startPanY = pan.y;
+
+      const THRESHOLD = 4;
+
+      function onMouseMove(ev: MouseEvent) {
+        const dx = ev.clientX - startClientX;
+        const dy = ev.clientY - startClientY;
+        if (!hasPannedRef.current && Math.sqrt(dx * dx + dy * dy) < THRESHOLD) return;
+        hasPannedRef.current = true;
+        setPan({ x: startPanX + dx, y: startPanY + dy });
+      }
+
+      function onMouseUp() {
+        window.removeEventListener('mousemove', onMouseMove);
+        window.removeEventListener('mouseup', onMouseUp);
+      }
+
+      window.addEventListener('mousemove', onMouseMove);
+      window.addEventListener('mouseup', onMouseUp);
+    },
+    [activeAtomSymbol, bondingFrom, pan.x, pan.y],
+  );
+
+  // -------------------------------------------------------------------------
   // Clique em área vazia do SVG
   // (átomos chamam e.stopPropagation(), então este handler só dispara no fundo)
   // -------------------------------------------------------------------------
 
   const handleSVGClick = useCallback(
     (e: React.MouseEvent<SVGSVGElement>) => {
+      // Se o mousedown resultou em pan, ignora o click
+      if (hasPannedRef.current) {
+        hasPannedRef.current = false;
+        return;
+      }
+
       const { x, y } = toSVGCoords(e);
 
       if (bondingFrom !== null) {
@@ -120,12 +170,29 @@ export default function Canvas() {
     [bondingFrom, activeAtomSymbol, selectedAtomId, dispatch],
   );
 
+  // Retorna true se o átomo for um alvo inválido para a ligação em andamento
+  const isBondTargetInvalid = useCallback(
+    (atomId: string): boolean => {
+      if (!bondingFrom || atomId === bondingFrom || hoveredAtomId !== atomId) return false;
+      const order = bondOrder[activeBondType];
+      return (
+        getAvailableValence(atomId, graph) < order ||
+        getAvailableValence(bondingFrom, graph) < order
+      );
+    },
+    [bondingFrom, hoveredAtomId, activeBondType, graph],
+  );
+
   // -------------------------------------------------------------------------
   // Cursor contextual
   // -------------------------------------------------------------------------
 
   const cursor =
-    activeAtomSymbol !== null ? 'crosshair' : bondingFrom !== null ? 'cell' : 'default';
+    activeAtomSymbol !== null
+      ? 'crosshair'
+      : bondingFrom !== null
+      ? 'cell'
+      : 'grab';
 
   // Átomo de origem da ligação (para a linha de preview)
   const bondingAtom = bondingFrom ? graph.atoms.find((a) => a.id === bondingFrom) : null;
@@ -139,6 +206,7 @@ export default function Canvas() {
       ref={svgRef}
       className="w-full h-full bg-zinc-900"
       onClick={handleSVGClick}
+      onMouseDown={handleSVGMouseDown}
       onMouseMove={handleSVGMouseMove}
       onMouseLeave={() => setMousePos(null)}
       style={{ cursor }}
@@ -146,7 +214,7 @@ export default function Canvas() {
       {/* Fundo clicável — garante que cliques em área vazia disparem onClick do SVG */}
       <rect width="100%" height="100%" fill="transparent" />
 
-      <g transform={`scale(${zoom})`}>
+      <g transform={`translate(${pan.x},${pan.y}) scale(${zoom})`}>
         {/* Ligações */}
         {graph.bonds.map((bond) => {
           const from = graph.atoms.find((a) => a.id === bond.fromId);
@@ -176,9 +244,12 @@ export default function Canvas() {
             atom={atom}
             isSelected={atom.id === selectedAtomId}
             isBondingFrom={atom.id === bondingFrom}
+            isInvalidBondTarget={isBondTargetInvalid(atom.id)}
             zoom={zoom}
             onClick={() => handleAtomClick(atom.id)}
             onDragEnd={() => {/* posição já atualizada via MOVE_ATOM em AtomNode */}}
+            onMouseEnter={() => setHoveredAtomId(atom.id)}
+            onMouseLeave={() => setHoveredAtomId(null)}
           />
         ))}
 

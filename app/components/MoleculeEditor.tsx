@@ -10,6 +10,7 @@ import {
   addBond,
   removeAtom,
 } from '../lib/moleculeGraph';
+import { getAvailableValence, bondOrder } from '../lib/valenceCalculator';
 import Sidebar from './Sidebar';
 import Canvas from './Canvas';
 import AtomInfoCard from './AtomInfoCard';
@@ -91,6 +92,21 @@ function reducer(state: EditorState, action: Action): EditorState {
     case 'COMPLETE_BOND': {
       if (!state.bondingFrom || state.bondingFrom === action.atomId) {
         return { ...state, bondingFrom: null };
+      }
+      // Ligação duplicada — não permitido no MVP
+      const alreadyBonded = state.graph.bonds.some(
+        (b) =>
+          (b.fromId === state.bondingFrom && b.toId === action.atomId) ||
+          (b.fromId === action.atomId && b.toId === state.bondingFrom),
+      );
+      if (alreadyBonded) return state;
+      const order = bondOrder[state.activeBondType];
+      if (
+        getAvailableValence(state.bondingFrom, state.graph) < order ||
+        getAvailableValence(action.atomId, state.graph) < order
+      ) {
+        // Valência insuficiente — ignora sem sair do modo de ligação
+        return state;
       }
       return {
         ...state,

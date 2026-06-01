@@ -42,9 +42,12 @@ interface AtomNodeProps {
   atom: Atom;
   isSelected: boolean;
   isBondingFrom: boolean;
+  isInvalidBondTarget: boolean;
   zoom: number;
   onClick: () => void;
   onDragEnd: (x: number, y: number) => void;
+  onMouseEnter?: () => void;
+  onMouseLeave?: () => void;
 }
 
 // ---------------------------------------------------------------------------
@@ -55,9 +58,12 @@ export default function AtomNode({
   atom,
   isSelected,
   isBondingFrom,
+  isInvalidBondTarget,
   zoom,
   onClick,
   onDragEnd,
+  onMouseEnter,
+  onMouseLeave,
 }: AtomNodeProps) {
   const { dispatch } = useMoleculeEditor();
 
@@ -92,8 +98,8 @@ export default function AtomNode({
     }
 
     function onMouseUp(ev: MouseEvent) {
-      svg.removeEventListener('mousemove', onMouseMove);
-      svg.removeEventListener('mouseup', onMouseUp);
+      window.removeEventListener('mousemove', onMouseMove);
+      window.removeEventListener('mouseup', onMouseUp);
 
       if (hasDragged.current) {
         const { x, y } = svgCoordsFromEvent(ev, svg, zoom);
@@ -103,8 +109,8 @@ export default function AtomNode({
       dragStart.current = null;
     }
 
-    svg.addEventListener('mousemove', onMouseMove);
-    svg.addEventListener('mouseup', onMouseUp);
+    window.addEventListener('mousemove', onMouseMove);
+    window.addEventListener('mouseup', onMouseUp);
   }
 
   // -------------------------------------------------------------------------
@@ -128,6 +134,8 @@ export default function AtomNode({
       transform={`translate(${atom.x},${atom.y})`}
       onClick={handleClick}
       onMouseDown={handleMouseDown}
+      onMouseEnter={onMouseEnter}
+      onMouseLeave={onMouseLeave}
       style={{ cursor: 'pointer' }}
     >
       {/* Anel laranja tracejado — átomo é a origem de uma ligação em andamento */}
@@ -147,6 +155,16 @@ export default function AtomNode({
           r={ATOM_RADIUS + 6}
           fill="none"
           stroke="#3b82f6"
+          strokeWidth={2}
+        />
+      )}
+
+      {/* Anel vermelho sólido — alvo de ligação inválido por valência insuficiente */}
+      {isInvalidBondTarget && (
+        <circle
+          r={ATOM_RADIUS + 6}
+          fill="none"
+          stroke="#ef4444"
           strokeWidth={2}
         />
       )}
