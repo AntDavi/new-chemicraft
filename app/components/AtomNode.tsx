@@ -135,6 +135,17 @@ export default function AtomNode({
   }
 
   // -------------------------------------------------------------------------
+  // Botão direito — deleta o átomo (apenas modo edit)
+  // -------------------------------------------------------------------------
+
+  function handleContextMenu(e: React.MouseEvent) {
+    e.preventDefault();
+    e.stopPropagation();
+    if (mode !== 'edit') return;
+    dispatch({ type: 'DELETE_ATOM', atomId: atom.id });
+  }
+
+  // -------------------------------------------------------------------------
   // Render
   // -------------------------------------------------------------------------
 
@@ -145,6 +156,7 @@ export default function AtomNode({
       transform={`translate(${atom.x},${atom.y})`}
       onClick={handleClick}
       onMouseDown={handleMouseDown}
+      onContextMenu={handleContextMenu}
       onMouseEnter={onMouseEnter}
       onMouseLeave={onMouseLeave}
       style={{ cursor: mode === 'select' ? 'pointer' : 'pointer' }}

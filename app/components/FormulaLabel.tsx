@@ -21,8 +21,7 @@ interface FormulaLabelProps {
 }
 
 export default function FormulaLabel({ graph }: FormulaLabelProps) {
-  // Só exibe o balão quando há pelo menos uma ligação formada
-  if (graph.bonds.length === 0) return null;
+  if (graph.atoms.length === 0) return null;
 
   // Centróide dos átomos
   const cx = graph.atoms.reduce((sum, a) => sum + a.x, 0) / graph.atoms.length;

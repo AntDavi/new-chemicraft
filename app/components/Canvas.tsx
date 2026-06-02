@@ -7,6 +7,7 @@
 import { useRef, useState, useCallback, useEffect } from 'react';
 import { useMoleculeEditor } from './MoleculeEditor';
 import { getAvailableValence, bondOrder } from '../lib/valenceCalculator';
+import { getConnectedComponents } from '../lib/moleculeGraph';
 import AtomNode from './AtomNode';
 import BondEdge from './BondEdge';
 import FormulaLabel from './FormulaLabel';
@@ -239,6 +240,7 @@ export default function Canvas() {
       onMouseDown={handleSVGMouseDown}
       onMouseMove={handleSVGMouseMove}
       onMouseLeave={() => setMousePos(null)}
+      onContextMenu={(e) => e.preventDefault()}
       style={{
         cursor,
         backgroundColor: '#F5F0E8',
@@ -288,7 +290,12 @@ export default function Canvas() {
           />
         ))}
 
-        <FormulaLabel graph={graph} />
+        {getConnectedComponents(graph).map((component) => (
+          <FormulaLabel
+            key={component.atoms.map((a) => a.id).join('-')}
+            graph={component}
+          />
+        ))}
       </g>
     </svg>
   );
