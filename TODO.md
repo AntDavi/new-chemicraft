@@ -269,14 +269,15 @@
 
 ## FASE 14 — app/api/analyze/route.ts
 
-- [ ] Criar rota POST em `app/api/analyze/route.ts`
-- [ ] Recebe body `{ challengeId: string, currentGraph: MoleculeGraph }`
-- [ ] Busca challenge via `getChallengeById`, compara via `compareMolecules`, constrói prompt via `buildAnalysisPrompt`
-- [ ] Chama Anthropic API com modelo `claude-sonnet-4-20250514`, `max_tokens: 300`
-- [ ] Retorna `{ feedback: string, isCorrect: boolean }`
-- [ ] Criar `.env.local` com `ANTHROPIC_API_KEY=` se não existir (não commitar)
-- [ ] Tratamento de erro: se `ANTHROPIC_API_KEY` ausente → retorna 500 sem quebrar o frontend
-- [ ] Commitar: `feat: api/analyze — rota POST com Anthropic`
+<!-- Fiz uma pequena alteração da api da Anthropic para a OpenAi -->
+- [x] Criar rota POST em `app/api/analyze/route.ts`
+- [x] Recebe body `{ challengeId: string, currentGraph: MoleculeGraph }`
+- [x] Busca challenge via `getChallengeById`, compara via `compareMolecules`, constrói prompt via `buildAnalysisPrompt`
+- [x] Chama Anthropic API com modelo `claude-sonnet-4-20250514`, `max_tokens: 300`
+- [x] Retorna `{ feedback: string, isCorrect: boolean }`
+- [x] Criar `.env.local` com `ANTHROPIC_API_KEY=` se não existir (não commitar)
+- [x] Tratamento de erro: se `ANTHROPIC_API_KEY` ausente → retorna 500 sem quebrar o frontend
+- [x] Commitar: `feat: api/analyze — rota POST com Anthropic`
 
 ---
 
