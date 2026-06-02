@@ -305,11 +305,11 @@
 
 ## FASE 17 — components/AIFeedbackPanel.tsx
 
-- [ ] Props: `feedback: string[]`, `isAnalyzing: boolean`
-- [ ] Lista feedbacks com o mais recente no topo
-- [ ] Estado de loading durante `isAnalyzing` (spinner ou skeleton)
-- [ ] Painel vazio exibe mensagem neutra "Construa a molécula e clique em Analisar"
-- [ ] Commitar: `feat: AIFeedbackPanel — painel de feedback da IA`
+- [x] Props: `feedback: string[]`, `isAnalyzing: boolean`
+- [x] Lista feedbacks com o mais recente no topo
+- [x] Estado de loading durante `isAnalyzing` (spinner ou skeleton)
+- [x] Painel vazio exibe mensagem neutra "Construa a molécula e clique em Analisar"
+- [x] Commitar: `feat: AIFeedbackPanel — painel de feedback da IA`
 
 ---
 
