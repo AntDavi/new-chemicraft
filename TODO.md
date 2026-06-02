@@ -295,11 +295,11 @@
 
 ## FASE 16 — components/ChallengePanel.tsx
 
-- [ ] Props: `challenge`, `challengeStatus`, `isAnalyzing`, `onAnalyze`, `onNewChallenge`
-- [ ] Exibe nome do desafio, fórmula alvo e dificuldade
-- [ ] Botão "Analisar" desabilitado enquanto `isAnalyzing === true`
-- [ ] Estado `completed`: celebração visual (ex.: confete ou banner) + botão "Próximo desafio"
-- [ ] Commitar: `feat: ChallengePanel — painel de desafio`
+- [x] Props: `challenge`, `challengeStatus`, `isAnalyzing`, `onAnalyze`, `onNewChallenge`
+- [x] Exibe nome do desafio, fórmula alvo e dificuldade
+- [x] Botão "Analisar" desabilitado enquanto `isAnalyzing === true`
+- [x] Estado `completed`: celebração visual (ex.: confete ou banner) + botão "Próximo desafio"
+- [x] Commitar: `feat: ChallengePanel — painel de desafio`
 
 ---
 
