@@ -3,7 +3,7 @@
 
 'use client';
 
-import { createContext, useContext, useReducer, ReactNode } from 'react';
+import { createContext, useContext, useReducer, useState, ReactNode } from 'react';
 import {
   MoleculeGraph,
   addAtom,
@@ -17,6 +17,9 @@ import Canvas from './Canvas';
 import AtomInfoCard from './AtomInfoCard';
 import BottomBar from './BottomBar';
 import TopBar from './TopBar';
+import ChallengeSelectModal from './ChallengeSelectModal';
+import ChallengePanel from './ChallengePanel';
+import AIFeedbackPanel from './AIFeedbackPanel';
 
 // ---------------------------------------------------------------------------
 // Estado
@@ -252,6 +255,7 @@ export function useMoleculeEditor(): MoleculeEditorContextValue {
 
 function EditorLayout() {
   const { state, dispatch } = useMoleculeEditor();
+  const [challengeModalOpen, setChallengeModalOpen] = useState(false);
 
   // AtomInfoCard só aparece no modo select e fora do modo de criação de ligações
   const infoAtomId =
@@ -259,15 +263,82 @@ function EditorLayout() {
       ? state.selectedAtomId
       : null;
 
+  // Chama a API de análise e despacha as actions correspondentes
+  async function handleAnalyze() {
+    if (!state.activeChallenge) return;
+    dispatch({ type: 'REQUEST_ANALYSIS' });
+    try {
+      const res = await fetch('/api/analyze', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          challengeId: state.activeChallenge.id,
+          currentGraph: state.graph,
+        }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error ?? 'Erro desconhecido');
+      dispatch({ type: 'SET_AI_FEEDBACK', feedback: data.feedback, isCorrect: data.isCorrect });
+    } catch (err) {
+      const message = err instanceof Error ? err.message : 'Falha ao obter feedback.';
+      dispatch({ type: 'SET_AI_FEEDBACK', feedback: message, isCorrect: false });
+    }
+  }
+
   return (
     <div className="flex flex-col h-screen bg-stone-50 text-stone-900">
-      {/* Barra de topo */}
-      <TopBar />
+      {/* Modal de seleção de desafios */}
+      <ChallengeSelectModal
+        isOpen={challengeModalOpen}
+        onClose={() => setChallengeModalOpen(false)}
+      />
 
-      {/* Área principal: sidebar + canvas */}
+      {/* Barra de topo */}
+      <TopBar onOpenChallenges={() => setChallengeModalOpen(true)} />
+
+      {/* Área principal: sidebar + canvas + painel direito (quando há desafio) */}
       <div className="flex flex-1 overflow-hidden">
         <Sidebar />
         <Canvas />
+
+        {/* Painel direito — visível somente quando activeChallenge !== null */}
+        {state.activeChallenge && (
+          <>
+            {/* Desktop: coluna fixa ao lado do canvas */}
+            <aside className="hidden md:flex flex-col w-72 shrink-0 border-l border-stone-200 bg-white overflow-y-auto">
+              <div className="flex flex-col gap-4 p-4">
+                <ChallengePanel
+                  challenge={state.activeChallenge}
+                  challengeStatus={state.challengeStatus}
+                  isAnalyzing={state.isAnalyzing}
+                  onAnalyze={handleAnalyze}
+                  onNewChallenge={() => setChallengeModalOpen(true)}
+                />
+                <AIFeedbackPanel
+                  feedback={state.aiFeedback}
+                  isAnalyzing={state.isAnalyzing}
+                />
+              </div>
+            </aside>
+
+            {/* Mobile: overlay fixo sobre o canvas, ancorado à direita */}
+            <aside className="md:hidden fixed right-0 top-10 bottom-16 w-72 z-40 border-l border-stone-200 bg-white overflow-y-auto shadow-xl">
+              <div className="flex flex-col gap-4 p-4">
+                <ChallengePanel
+                  challenge={state.activeChallenge}
+                  challengeStatus={state.challengeStatus}
+                  isAnalyzing={state.isAnalyzing}
+                  onAnalyze={handleAnalyze}
+                  onNewChallenge={() => setChallengeModalOpen(true)}
+                />
+                <AIFeedbackPanel
+                  feedback={state.aiFeedback}
+                  isAnalyzing={state.isAnalyzing}
+                />
+              </div>
+            </aside>
+          </>
+        )}
       </div>
 
       {/* Barra inferior: AtomInfoCard (esquerda) + BottomBar (direita) */}

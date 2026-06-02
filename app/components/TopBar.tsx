@@ -6,7 +6,11 @@
 import { useMoleculeEditor } from './MoleculeEditor';
 import { atomData } from '../lib/atomData';
 
-export default function TopBar() {
+interface TopBarProps {
+  onOpenChallenges?: () => void;
+}
+
+export default function TopBar({ onOpenChallenges }: TopBarProps) {
   const { state, dispatch } = useMoleculeEditor();
   const { graph, mode, activeAtomSymbol, bondingFrom } = state;
 
@@ -77,6 +81,26 @@ export default function TopBar() {
         />
         <span className="text-stone-600 text-xs">{modeText}</span>
       </div>
+
+      {/* Botão de desafios */}
+      {onOpenChallenges && (
+        <button
+          onClick={onOpenChallenges}
+          className={`
+            flex items-center gap-1.5 px-3 py-1 rounded-md text-xs font-semibold transition-colors
+            ${state.activeChallenge
+              ? 'bg-stone-800 text-white hover:bg-stone-700'
+              : 'bg-stone-100 text-stone-600 hover:bg-stone-200 hover:text-stone-800'}
+          `}
+        >
+          <span>Desafios</span>
+          {state.activeChallenge && (
+            <span className="text-[9px] font-bold tracking-widest uppercase text-stone-400">
+              · ativo
+            </span>
+          )}
+        </button>
+      )}
 
       {/* Stats */}
       <div className="ml-auto flex items-center gap-2 text-[11px] text-stone-400 shrink-0">

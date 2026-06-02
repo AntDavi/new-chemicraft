@@ -315,19 +315,19 @@
 
 ## FASE 18 — Tela de seleção de desafios
 
-- [ ] Criar `app/challenges/page.tsx` ou modal na página principal
-- [ ] Listar todos os desafios com nome, fórmula e badge de dificuldade
-- [ ] Botão "Iniciar" por desafio: despacha `START_CHALLENGE` e redireciona ao canvas
-- [ ] Commitar: `feat: challenges page — seleção de desafios`
+- [x] Criar `app/challenges/page.tsx` ou modal na página principal
+- [x] Listar todos os desafios com nome, fórmula e badge de dificuldade
+- [x] Botão "Iniciar" por desafio: despacha `START_CHALLENGE` e redireciona ao canvas
+- [x] Commitar: `feat: challenges page — seleção de desafios`
 
 ---
 
 ## FASE 19 — Integração final do painel direito
 
-- [ ] Adicionar `ChallengePanel` + `AIFeedbackPanel` ao layout do `MoleculeEditor`
-- [ ] Painel direito visível **somente quando `activeChallenge !== null`**
-- [ ] Layout: painel direito ao lado do canvas (ou sobreposto em telas menores)
-- [ ] Commitar: `feat: integração painel direito — ChallengePanel + AIFeedbackPanel`
+- [x] Adicionar `ChallengePanel` + `AIFeedbackPanel` ao layout do `MoleculeEditor`
+- [x] Painel direito visível **somente quando `activeChallenge !== null`**
+- [x] Layout: painel direito ao lado do canvas (ou sobreposto em telas menores)
+- [x] Commitar: `feat: integração painel direito — ChallengePanel + AIFeedbackPanel`
 
 ---
 
