@@ -11,6 +11,7 @@ import {
   removeAtom,
 } from '../lib/moleculeGraph';
 import { getAvailableValence, bondOrder } from '../lib/valenceCalculator';
+import type { Challenge } from '../lib/challengeDatabase';
 import Sidebar from './Sidebar';
 import Canvas from './Canvas';
 import AtomInfoCard from './AtomInfoCard';
@@ -23,6 +24,7 @@ import TopBar from './TopBar';
 
 export type BondType = 'single' | 'double' | 'triple';
 export type EditorMode = 'select' | 'edit';
+export type ChallengeStatus = 'idle' | 'active' | 'completed';
 
 export interface EditorState {
   graph: MoleculeGraph;
@@ -33,6 +35,11 @@ export interface EditorState {
   selectedAtomId: string | null;
   zoom: number;
   pan: { x: number; y: number };
+  // IA Tutora
+  activeChallenge: Challenge | null;
+  challengeStatus: ChallengeStatus;
+  aiFeedback: string[];
+  isAnalyzing: boolean;
 }
 
 const initialState: EditorState = {
@@ -44,6 +51,11 @@ const initialState: EditorState = {
   selectedAtomId: null,
   zoom: 1,
   pan: { x: 0, y: 0 },
+  // IA Tutora
+  activeChallenge: null,
+  challengeStatus: 'idle',
+  aiFeedback: [],
+  isAnalyzing: false,
 };
 
 // ---------------------------------------------------------------------------
@@ -65,7 +77,12 @@ export type Action =
   | { type: 'ZOOM_IN' }
   | { type: 'ZOOM_OUT' }
   | { type: 'SET_PAN'; x: number; y: number }
-  | { type: 'CLEAR' };
+  | { type: 'CLEAR' }
+  // IA Tutora
+  | { type: 'START_CHALLENGE'; challenge: Challenge }
+  | { type: 'REQUEST_ANALYSIS' }
+  | { type: 'SET_AI_FEEDBACK'; feedback: string; isCorrect: boolean }
+  | { type: 'COMPLETE_CHALLENGE' };
 
 // ---------------------------------------------------------------------------
 // Reducer
@@ -176,6 +193,36 @@ function reducer(state: EditorState, action: Action): EditorState {
 
     case 'CLEAR':
       return { ...initialState };
+
+    // ── IA Tutora ────────────────────────────────────────────────────────────
+
+    case 'START_CHALLENGE':
+      return {
+        ...initialState,
+        // Preserva zoom/pan do estado atual para não desorientar o aluno
+        zoom: state.zoom,
+        pan: state.pan,
+        activeChallenge: action.challenge,
+        challengeStatus: 'active',
+        aiFeedback: [action.challenge.initialHint],
+        isAnalyzing: false,
+      };
+
+    case 'REQUEST_ANALYSIS':
+      return { ...state, isAnalyzing: true };
+
+    case 'SET_AI_FEEDBACK':
+      return {
+        ...state,
+        // Feedback mais recente no topo
+        aiFeedback: [action.feedback, ...state.aiFeedback],
+        isAnalyzing: false,
+        // Dispara conclusão automaticamente quando a API confirma acerto
+        challengeStatus: action.isCorrect ? 'completed' : state.challengeStatus,
+      };
+
+    case 'COMPLETE_CHALLENGE':
+      return { ...state, challengeStatus: 'completed' };
 
     default:
       return state;

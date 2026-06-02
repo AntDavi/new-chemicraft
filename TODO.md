@@ -283,13 +283,13 @@
 
 ## FASE 15 — Novas actions no reducer do MoleculeEditor
 
-- [ ] Adicionar novos campos ao `EditorState`: `activeChallenge`, `challengeStatus`, `aiFeedback`, `isAnalyzing`
-- [ ] Implementar action `START_CHALLENGE`: define `activeChallenge`, limpa grafo, `challengeStatus → active`
-- [ ] Implementar action `REQUEST_ANALYSIS`: `isAnalyzing → true`
-- [ ] Implementar action `SET_AI_FEEDBACK`: adiciona feedback ao array, `isAnalyzing → false`
-- [ ] Implementar action `COMPLETE_CHALLENGE`: `challengeStatus → completed`
-- [ ] Disparar `COMPLETE_CHALLENGE` automaticamente quando `isCorrect === true` na resposta da API
-- [ ] Commitar: `feat: MoleculeEditor — actions de desafio e IA`
+- [x] Adicionar novos campos ao `EditorState`: `activeChallenge`, `challengeStatus`, `aiFeedback`, `isAnalyzing`
+- [x] Implementar action `START_CHALLENGE`: define `activeChallenge`, limpa grafo, `challengeStatus → active`
+- [x] Implementar action `REQUEST_ANALYSIS`: `isAnalyzing → true`
+- [x] Implementar action `SET_AI_FEEDBACK`: adiciona feedback ao array, `isAnalyzing → false`
+- [x] Implementar action `COMPLETE_CHALLENGE`: `challengeStatus → completed`
+- [x] Disparar `COMPLETE_CHALLENGE` automaticamente quando `isCorrect === true` na resposta da API
+- [x] Commitar: `feat: MoleculeEditor — actions de desafio e IA`
 
 ---
 

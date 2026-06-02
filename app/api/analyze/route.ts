@@ -6,10 +6,10 @@
 import { NextRequest, NextResponse } from 'next/server';
 import OpenAI from 'openai';
 
-import { getChallengeById } from '@/app/lib/challengeDatabase';
-import { compareMolecules } from '@/app/lib/moleculeComparator';
-import { buildAnalysisPrompt } from '@/app/lib/aiPromptBuilder';
-import type { MoleculeGraph } from '@/app/lib/moleculeGraph';
+import { getChallengeById } from '@/lib/challengeDatabase';
+import { compareMolecules } from '@/lib/moleculeComparator';
+import { buildAnalysisPrompt } from '@/lib/aiPromptBuilder';
+import type { MoleculeGraph } from '@/lib/moleculeGraph';
 
 export async function POST(request: NextRequest) {
   // Verifica presença da chave antes de qualquer coisa
