@@ -326,6 +326,130 @@ interface MoleculeDiff {
 
 ---
 
+## Feature: Turmas e Relatórios para Professores
+
+> Camada de plataforma educacional sobre o MVP. Depende das Fases 0–20 concluídas.
+
+### Stack adicional
+
+| Camada | Tecnologia | Justificativa |
+|--------|-----------|---------------|
+| Auth + DB | Supabase (email/senha + Postgres + RLS) | BaaS gerenciado, integra com Next.js App Router sem servidor próprio |
+
+Variáveis de ambiente adicionais:
+```
+NEXT_PUBLIC_SUPABASE_URL=https://...      # em .env.local (nunca commitar)
+NEXT_PUBLIC_SUPABASE_ANON_KEY=eyJ...     # em .env.local (nunca commitar)
+```
+
+### Papéis de usuário
+
+| Papel | Capacidades |
+|-------|------------|
+| `teacher` | Cria turmas, gera código de acesso, visualiza relatórios individuais e agregados |
+| `student` | Entra em turma pelo código de 6 chars, pratica desafios, visualiza próprio progresso |
+
+### Modelo de dados (6 tabelas)
+
+```sql
+-- 1. users
+id          uuid primary key
+email       text unique not null
+name        text not null
+role        text not null  -- 'teacher' | 'student'
+created_at  timestamptz default now()
+
+-- 2. classrooms
+id          uuid primary key
+name        text not null
+teacher_id  uuid references users(id)
+join_code   char(6) unique not null  -- gerado aleatoriamente
+created_at  timestamptz default now()
+
+-- 3. enrollments
+id           uuid primary key
+student_id   uuid references users(id)
+classroom_id uuid references classrooms(id)
+joined_at    timestamptz default now()
+
+-- 4. challenge_sessions
+id               uuid primary key
+student_id       uuid references users(id)
+challenge_id     text not null          -- id do desafio em challengeDatabase.ts
+classroom_id     uuid references classrooms(id)
+started_at       timestamptz default now()
+completed_at     timestamptz
+status           text not null  -- 'in_progress' | 'completed' | 'abandoned'
+actions_count    int default 0
+ai_requests_count int default 0
+
+-- 5. session_actions
+id          uuid primary key
+session_id  uuid references challenge_sessions(id)
+action_type text not null  -- 'place_atom' | 'add_bond' | 'delete_atom' | 'valence_blocked' | 'wrong_atom'
+payload     jsonb
+created_at  timestamptz default now()
+
+-- 6. session_feedback
+id           uuid primary key
+session_id   uuid references challenge_sessions(id)
+feedback_text text not null
+triggered_by  text not null  -- 'manual' | 'valence_error' | 'challenge_start'
+created_at   timestamptz default now()
+```
+
+### Novas páginas
+
+| Rota | Papel | Descrição |
+|------|-------|-----------|
+| `/login` | ambos | Formulário email + senha |
+| `/register` | ambos | Email + senha + nome + seleção de papel |
+| `/teacher/dashboard` | teacher | Lista de turmas criadas pelo professor |
+| `/teacher/classroom/[id]` | teacher | Visão geral: alunos, engajamento, erros frequentes |
+| `/teacher/classroom/[id]/student/[studentId]` | teacher | Relatório individual de um aluno |
+| `/teacher/classroom/[id]/report` | teacher | Relatório agregado da turma |
+| `/student/dashboard` | student | Meu progresso + minhas turmas |
+| `/student/join` | student | Entrar em turma pelo código de 6 chars |
+| `/app` | ambos | Editor existente — agora cria `challenge_session` ao iniciar desafio |
+
+### Middleware de autenticação
+
+`middleware.ts` na raiz do projeto:
+- Protege rotas `/teacher/*` e `/student/*` — redireciona para `/login` se não autenticado
+- Verifica papel: `teacher` não acessa `/student/*` e vice-versa (redireciona para o próprio dashboard)
+- Rotas públicas: `/`, `/login`, `/register`, `/app`
+
+### Novos arquivos lib
+
+| Arquivo | Responsabilidade |
+|---------|-----------------|
+| `lib/supabase.ts` | Client singleton do Supabase (usa `createBrowserClient` / `createServerClient` do `@supabase/ssr`) |
+| `lib/sessionLogger.ts` | Funções fire-and-forget: `createSession()`, `logAction()`, `logFeedback()`, `completeSession()` — **nunca usa `await` na UI**, sempre `.then().catch()` |
+| `lib/auth.ts` | Funções `getUser()`, `signIn()`, `signUp()`, `signOut()` |
+
+### Mudança no editor (MoleculeEditor)
+
+- `START_CHALLENGE` com usuário autenticado e turma ativa → `sessionLogger.createSession()` em background
+- Cada action do reducer que altera o grafo → `sessionLogger.logAction()` em background
+- `SET_AI_FEEDBACK` → `sessionLogger.logFeedback()` em background
+- `COMPLETE_CHALLENGE` → `sessionLogger.completeSession()` em background
+
+### Relatórios do professor
+
+**Visão da turma** (`/teacher/classroom/[id]`):
+- Taxa de conclusão por molécula (desafios completados / iniciados)
+- Erros mais frequentes por molécula (agrupado por `action_type`)
+- Alunos sem atividade há mais de 7 dias (destacados visualmente)
+- Ranking de engajamento por volume de prática (`actions_count` total)
+
+**Visão do aluno** (`/teacher/classroom/[id]/student/[studentId]`):
+- Linha do tempo de sessões (mais recente no topo)
+- Taxa de conclusão por nível de dificuldade
+- Padrão de erros recorrentes (agrupado por `action_type` do `session_actions`)
+- Evolução entre primeira e últimas tentativas (delta de `actions_count`)
+
+---
+
 ## Tropeços
 
 > Seção para registrar problemas reais encontrados durante a implementação. Começa vazia.
@@ -343,3 +467,4 @@ interface MoleculeDiff {
 | 2025-05-28 | Wireframe (v1) analisado — layout corrigido: sidebar esquerda vertical + AtomInfoCard na barra inferior |
 | 2025-05-28 | valenceCalculator.ts adicionado à arquitetura |
 | 2025-05-28 | FormulaLabel como balão flutuante SVG no canvas documentado |
+| 2025-06-02 | Implementação da IA que irá corrigir as atividades |

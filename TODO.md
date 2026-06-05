@@ -333,12 +333,12 @@
 
 ## FASE 20 — Testes manuais da IA
 
-- [ ] H₂O errado (H–H) → IA aponta o erro → corrigir → IA confirma
-- [ ] CH₄ com N em vez de C → IA identifica átomo errado
-- [ ] CO₂ com ligação simples → IA aponta tipo de ligação errado
-- [ ] Completar desafio → `challengeStatus === completed` → celebração aparece
-- [ ] `ANTHROPIC_API_KEY` ausente → erro 500 no servidor, frontend exibe mensagem amigável sem quebrar
-- [ ] Commitar: `test: testes manuais da IA tutora`
+- [x] H₂O errado (H–H) → IA aponta o erro → corrigir → IA confirma
+- [x] CH₄ com N em vez de C → IA identifica átomo errado
+- [x] CO₂ com ligação simples → IA aponta tipo de ligação errado
+- [x] Completar desafio → `challengeStatus === completed` → celebração aparece
+- [x] `ANTHROPIC_API_KEY` ausente → erro 500 no servidor, frontend exibe mensagem amigável sem quebrar
+- [x] Commitar: `test: testes manuais da IA tutora`
 
 ---
 
@@ -351,3 +351,96 @@
 - Banco de moléculas expandido
 - Desfazer / refazer (undo/redo)
 - Mobile touch events
+
+---
+
+## FASE 21 — Supabase setup
+
+- [x] Criar projeto no Supabase (dashboard.supabase.com)
+- [x] Criar as 6 tabelas: `users`, `classrooms`, `enrollments`, `challenge_sessions`, `session_actions`, `session_feedback` com os campos descritos no CLAUDE.md
+- [x] Configurar Row Level Security:
+  - Aluno só vê suas próprias sessões (`student_id = auth.uid()`)
+  - Professor só vê sessões de alunos das suas turmas (join via `classrooms.teacher_id = auth.uid()`)
+- [x] Adicionar `NEXT_PUBLIC_SUPABASE_URL` e `NEXT_PUBLIC_SUPABASE_ANON_KEY` ao `.env.local`
+- [x] Criar `lib/supabase.ts` com client singleton (`createBrowserClient` / `createServerClient` do `@supabase/ssr`)
+- [x] Commitar: `feat: supabase setup — tabelas e RLS`
+
+---
+
+## FASE 22 — Autenticação
+
+- [ ] Instalar `@supabase/ssr`: `npm install @supabase/ssr`
+- [ ] Criar `app/login/page.tsx`: formulário email + senha
+- [ ] Criar `app/register/page.tsx`: email + senha + nome + seleção de papel (`teacher` / `student`)
+- [ ] Criar `middleware.ts` na raiz: proteger `/teacher/*` e `/student/*`, redirecionar para `/login` se não autenticado; verificar papel e redirecionar cruzado
+- [ ] Criar `lib/auth.ts`: funções `getUser()`, `signIn()`, `signUp()`, `signOut()`
+- [ ] Commitar: `feat: autenticação — login, register, middleware`
+
+---
+
+## FASE 23 — Fluxo do aluno: turmas
+
+- [ ] Criar `app/student/join/page.tsx`: campo de código de 6 chars → valida e insere em `enrollments`
+- [ ] Criar `app/student/dashboard/page.tsx`: lista turmas do aluno (via `enrollments`) + progresso geral (sessões completadas / iniciadas)
+- [ ] Commitar: `feat: student flow — join e dashboard`
+
+---
+
+## FASE 24 — Logging de sessões no editor
+
+- [ ] Criar `lib/sessionLogger.ts` com funções fire-and-forget (todas usam `.then().catch()`, **nunca `await` na UI**):
+  - `createSession(challengeId, classroomId)` → insere em `challenge_sessions`, retorna `sessionId`
+  - `logAction(sessionId, actionType, payload)` → insere em `session_actions`, incrementa `actions_count`
+  - `logFeedback(sessionId, feedbackText, triggeredBy)` → insere em `session_feedback`, incrementa `ai_requests_count`
+  - `completeSession(sessionId)` → atualiza `status = 'completed'`, `completed_at = now()`
+- [ ] No `MoleculeEditor`: ao `START_CHALLENGE` com usuário autenticado → `createSession()` em background
+- [ ] No reducer: cada action que altera o grafo → `logAction()` em background
+- [ ] No `SET_AI_FEEDBACK` → `logFeedback()` em background
+- [ ] No `COMPLETE_CHALLENGE` → `completeSession()` em background
+- [ ] Commitar: `feat: sessionLogger — logging fire-and-forget no editor`
+
+---
+
+## FASE 25 — Dashboard do professor: turmas
+
+- [ ] Criar `app/teacher/dashboard/page.tsx`: lista turmas do professor + botão "Criar turma" (gera `join_code` aleatório de 6 chars)
+- [ ] Criar `app/teacher/classroom/[id]/page.tsx`:
+  - Lista de alunos matriculados
+  - Última atividade de cada aluno (max `started_at` de `challenge_sessions`)
+  - Taxa de conclusão geral da turma
+  - Destaque visual para alunos sem atividade há mais de 7 dias
+- [ ] Commitar: `feat: teacher dashboard — turmas e visão geral`
+
+---
+
+## FASE 26 — Relatório individual do aluno (visão do professor)
+
+- [ ] Criar `app/teacher/classroom/[id]/student/[studentId]/page.tsx`
+- [ ] Exibir linha do tempo de sessões (mais recente no topo)
+- [ ] Exibir taxa de conclusão por nível de dificuldade (`challenge_sessions.status` agrupado)
+- [ ] Exibir erros mais frequentes (agrupados por `action_type` de `session_actions`)
+- [ ] Exibir histórico de feedbacks da IA recebidos (de `session_feedback`)
+- [ ] Commitar: `feat: relatório individual do aluno`
+
+---
+
+## FASE 27 — Relatório agregado da turma
+
+- [ ] Criar `app/teacher/classroom/[id]/report/page.tsx`
+- [ ] Exibir taxa de conclusão por molécula (`challenge_id` vs `status = 'completed'`)
+- [ ] Exibir top 5 erros mais frequentes da turma (agrupado por `action_type`)
+- [ ] Exibir distribuição de alunos por nível de dificuldade alcançado
+- [ ] Commitar: `feat: relatório agregado da turma`
+
+---
+
+## FASE 28 — Testes manuais da plataforma
+
+- [ ] Cadastrar professor → criar turma → copiar código de acesso
+- [ ] Cadastrar aluno → entrar na turma pelo código
+- [ ] Aluno inicia desafio → ações e feedback aparecem em `challenge_sessions` / `session_actions` no Supabase em tempo real
+- [ ] Professor abre relatório individual → vê sessão do aluno com erros corretos
+- [ ] Professor abre relatório agregado → dados batem com o que o aluno fez
+- [ ] Testar RLS: aluno não consegue ler sessões de outro aluno
+- [ ] Testar middleware: teacher redirecionado ao tentar acessar `/student/*`
+- [ ] Commitar: `test: testes manuais da plataforma de turmas`
