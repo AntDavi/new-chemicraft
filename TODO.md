@@ -369,12 +369,12 @@
 
 ## FASE 22 — Autenticação
 
-- [ ] Instalar `@supabase/ssr`: `npm install @supabase/ssr`
-- [ ] Criar `app/login/page.tsx`: formulário email + senha
-- [ ] Criar `app/register/page.tsx`: email + senha + nome + seleção de papel (`teacher` / `student`)
-- [ ] Criar `middleware.ts` na raiz: proteger `/teacher/*` e `/student/*`, redirecionar para `/login` se não autenticado; verificar papel e redirecionar cruzado
-- [ ] Criar `lib/auth.ts`: funções `getUser()`, `signIn()`, `signUp()`, `signOut()`
-- [ ] Commitar: `feat: autenticação — login, register, middleware`
+- [x] Instalar `@supabase/ssr`: `npm install @supabase/ssr`
+- [x] Criar `app/login/page.tsx`: formulário email + senha
+- [x] Criar `app/register/page.tsx`: email + senha + nome + seleção de papel (`teacher` / `student`)
+- [x] Criar `middleware.ts` na raiz: proteger `/teacher/*` e `/student/*`, redirecionar para `/login` se não autenticado; verificar papel e redirecionar cruzado
+- [x] Criar `lib/auth.ts`: funções `getUser()`, `signIn()`, `signUp()`, `signOut()`
+- [x] Commitar: `feat: autenticação — login, register, middleware`
 
 ---
 
