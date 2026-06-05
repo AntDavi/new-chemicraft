@@ -403,13 +403,13 @@
 
 ## FASE 25 — Dashboard do professor: turmas
 
-- [ ] Criar `app/teacher/dashboard/page.tsx`: lista turmas do professor + botão "Criar turma" (gera `join_code` aleatório de 6 chars)
-- [ ] Criar `app/teacher/classroom/[id]/page.tsx`:
+- [x] Criar `app/teacher/dashboard/page.tsx`: lista turmas do professor + botão "Criar turma" (gera `join_code` aleatório de 6 chars)
+- [x] Criar `app/teacher/classroom/[id]/page.tsx`:
   - Lista de alunos matriculados
   - Última atividade de cada aluno (max `started_at` de `challenge_sessions`)
   - Taxa de conclusão geral da turma
   - Destaque visual para alunos sem atividade há mais de 7 dias
-- [ ] Commitar: `feat: teacher dashboard — turmas e visão geral`
+- [x] Commitar: `feat: teacher dashboard — turmas e visão geral`
 
 ---
 
