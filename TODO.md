@@ -388,16 +388,16 @@
 
 ## FASE 24 — Logging de sessões no editor
 
-- [ ] Criar `lib/sessionLogger.ts` com funções fire-and-forget (todas usam `.then().catch()`, **nunca `await` na UI**):
+- [x] Criar `lib/sessionLogger.ts` com funções fire-and-forget (todas usam `.then().catch()`, **nunca `await` na UI**):
   - `createSession(challengeId, classroomId)` → insere em `challenge_sessions`, retorna `sessionId`
   - `logAction(sessionId, actionType, payload)` → insere em `session_actions`, incrementa `actions_count`
   - `logFeedback(sessionId, feedbackText, triggeredBy)` → insere em `session_feedback`, incrementa `ai_requests_count`
   - `completeSession(sessionId)` → atualiza `status = 'completed'`, `completed_at = now()`
-- [ ] No `MoleculeEditor`: ao `START_CHALLENGE` com usuário autenticado → `createSession()` em background
-- [ ] No reducer: cada action que altera o grafo → `logAction()` em background
-- [ ] No `SET_AI_FEEDBACK` → `logFeedback()` em background
-- [ ] No `COMPLETE_CHALLENGE` → `completeSession()` em background
-- [ ] Commitar: `feat: sessionLogger — logging fire-and-forget no editor`
+- [x] No `MoleculeEditor`: ao `START_CHALLENGE` com usuário autenticado → `createSession()` em background
+- [x] No reducer: cada action que altera o grafo → `logAction()` em background
+- [x] No `SET_AI_FEEDBACK` → `logFeedback()` em background
+- [x] No `COMPLETE_CHALLENGE` → `completeSession()` em background
+- [x] Commitar: `feat: sessionLogger — logging fire-and-forget no editor`
 
 ---
 

@@ -3,7 +3,13 @@
 
 'use client';
 
-import { createContext, useContext, useReducer, useState, ReactNode } from 'react';
+import { createContext, useContext, useReducer, useRef, useCallback, useState, ReactNode } from 'react';
+import {
+  createSession,
+  logAction,
+  logFeedback,
+  completeSession,
+} from '../lib/sessionLogger';
 import {
   MoleculeGraph,
   addAtom,
@@ -368,9 +374,54 @@ function EditorLayout() {
 
 export default function MoleculeEditor({ children }: { children?: ReactNode }) {
   const [state, dispatch] = useReducer(reducer, initialState);
+  // sessionIdRef guarda o ID da sessão ativa sem causar re-render
+  const sessionIdRef = useRef<string | null>(null);
+
+  // Wrap de dispatch: dispara o logging fire-and-forget antes/após cada action.
+  // O reducer permanece puro — efeitos colaterais ficam aqui.
+  const loggedDispatch = useCallback(
+    (action: Action) => {
+      dispatch(action);
+
+      switch (action.type) {
+        case 'START_CHALLENGE':
+          sessionIdRef.current = null;
+          // Cria a sessão em background; armazena o ID assim que resolver
+          createSession(action.challenge.id, null).then((id) => {
+            sessionIdRef.current = id;
+          });
+          break;
+
+        case 'PLACE_ATOM':
+          logAction(sessionIdRef.current, 'place_atom', {
+            symbol: action.symbol,
+            x: action.x,
+            y: action.y,
+          });
+          break;
+
+        case 'COMPLETE_BOND':
+          logAction(sessionIdRef.current, 'add_bond', { atomId: action.atomId });
+          break;
+
+        case 'DELETE_ATOM':
+          logAction(sessionIdRef.current, 'delete_atom', { atomId: action.atomId });
+          break;
+
+        case 'SET_AI_FEEDBACK':
+          logFeedback(sessionIdRef.current, action.feedback, 'manual');
+          break;
+
+        case 'COMPLETE_CHALLENGE':
+          completeSession(sessionIdRef.current);
+          break;
+      }
+    },
+    [dispatch],
+  );
 
   return (
-    <MoleculeEditorContext.Provider value={{ state, dispatch }}>
+    <MoleculeEditorContext.Provider value={{ state, dispatch: loggedDispatch }}>
       {children ?? <EditorLayout />}
     </MoleculeEditorContext.Provider>
   );
