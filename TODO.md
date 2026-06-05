@@ -380,9 +380,9 @@
 
 ## FASE 23 — Fluxo do aluno: turmas
 
-- [ ] Criar `app/student/join/page.tsx`: campo de código de 6 chars → valida e insere em `enrollments`
-- [ ] Criar `app/student/dashboard/page.tsx`: lista turmas do aluno (via `enrollments`) + progresso geral (sessões completadas / iniciadas)
-- [ ] Commitar: `feat: student flow — join e dashboard`
+- [x] Criar `app/student/join/page.tsx`: campo de código de 6 chars → valida e insere em `enrollments`
+- [x] Criar `app/student/dashboard/page.tsx`: lista turmas do aluno (via `enrollments`) + progresso geral (sessões completadas / iniciadas)
+- [x] Commitar: `feat: student flow — join e dashboard`
 
 ---
 
