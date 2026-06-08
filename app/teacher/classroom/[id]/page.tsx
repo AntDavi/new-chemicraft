@@ -147,7 +147,14 @@ export default async function ClassroomPage({
             </div>
           </div>
         </div>
-        <SignOutButton />
+        <div className="flex items-center gap-2">
+          <Link href={`/teacher/classroom/${id}/report`}>
+            <Button variant="outline" size="sm">
+              Relatório
+            </Button>
+          </Link>
+          <SignOutButton />
+        </div>
       </header>
 
       <main className="max-w-2xl mx-auto px-4 py-8 space-y-6">
