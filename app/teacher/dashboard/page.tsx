@@ -15,7 +15,7 @@ import {
 } from '@/components/ui/card'
 import { SignOutButton } from '@/components/SignOutButton'
 import { CreateClassroomModal } from '@/components/CreateClassroomModal'
-import { CopyButton } from '@/components/CopyButton'
+import { JoinCodeBadge } from '@/components/JoinCodeBadge'
 import { createServerClient } from '../../../lib/supabase'
 
 type Classroom = {
@@ -152,15 +152,7 @@ export default async function TeacherDashboardPage() {
 
                         <div className="flex items-center gap-3 shrink-0">
                           {/* Código de acesso */}
-                          <div
-                            className="flex items-center gap-1"
-                            onClick={(e) => e.preventDefault()}
-                          >
-                            <span className="font-mono text-sm font-semibold tracking-widest bg-muted px-2 py-0.5 rounded">
-                              {classroom.join_code}
-                            </span>
-                            <CopyButton text={classroom.join_code} />
-                          </div>
+                          <JoinCodeBadge code={classroom.join_code} />
 
                           {/* Contagem de alunos */}
                           <div className="flex items-center gap-1 text-sm text-muted-foreground">

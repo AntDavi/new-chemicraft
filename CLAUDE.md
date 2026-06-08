@@ -454,6 +454,37 @@ created_at   timestamptz default now()
 
 > Seção para registrar problemas reais encontrados durante a implementação. Começa vazia.
 
+### 2026-06-08 — Erro 403 ao criar turma (RLS bloqueando insert em `classrooms`)
+
+**Sintoma:** Professor logado recebe "Erro ao criar turma. Tente novamente." e o console mostra `POST .../rest/v1/classrooms 403 (Forbidden)`.
+
+**Causa raiz (1ª tentativa, incompleta):** O `signUp()` em `app/lib/auth.ts` só criava o usuário em `auth.users` (via Supabase Auth) e nunca inseria a linha correspondente em `public.users` (tabela que guarda `name` e `role`). As políticas de RLS de `classrooms` checam o papel do usuário consultando `public.users`, então sem essa linha o INSERT é negado pela RLS. Tentamos corrigir inserindo em `users` logo após `signUp()`, mas o erro persistiu com `42501 — new row violates row-level security policy for table "users"`.
+
+**Causa raiz real:** o projeto exige confirmação de email, então `signUp()` retorna **sem sessão ativa** (`data.session === null`). Sem sessão, `auth.uid()` é `null` no contexto do banco, e a policy de INSERT em `users` (`with check (auth.uid() = id)`) nunca passa — o insert feito logo após `signUp()` está sempre bloqueado pela RLS, independente de como a policy for escrita.
+
+**Correção definitiva:** removido o insert de dentro de `signUp()`. Criada a função `ensureUserProfile()` em `app/lib/auth.ts`, chamada dentro de `signIn()` — momento em que já existe sessão ativa e `auth.uid()` é válido. Ela verifica se a linha em `public.users` já existe e, se não, cria usando `name`/`role` salvos em `user_metadata` no cadastro. `signUp()` só chama `ensureUserProfile` no caso (raro) de a confirmação de email estar desativada e a sessão já vir ativa.
+
+**Política de RLS necessária em `public.users`:**
+```sql
+create policy "Usuários podem criar seu próprio perfil"
+on public.users
+for insert
+to authenticated
+with check (auth.uid() = id);
+```
+
+**Atenção:** contas antigas sem linha em `public.users` são corrigidas automaticamente no próximo login — não precisam mais de inserção manual.
+
+### 2026-06-08 — "Event handlers cannot be passed to Client Component props" no dashboard do professor
+
+**Sintoma:** Ao listar turmas em `/teacher/dashboard`, a página quebra com `Runtime Error: Event handlers cannot be passed to Client Component props. <div className=... onClick={function onClick}...>`.
+
+**Causa raiz:** `app/teacher/dashboard/page.tsx` é um **Server Component** (`async function`, sem `'use client'`). O card de cada turma envolvia o badge do código de acesso num `<div onClick={(e) => e.preventDefault()}>` para impedir que o clique disparasse a navegação do `<Link>` pai — mas handlers de evento não podem ser passados a elementos nativos renderizados no servidor.
+
+**Correção:** extraído esse bloco para um novo Client Component `app/components/JoinCodeBadge.tsx` (`'use client'`), que recebe `code: string`, renderiza o badge + `CopyButton` e faz `e.preventDefault()` / `e.stopPropagation()` no `onClick`. `page.tsx` agora só renderiza `<JoinCodeBadge code={classroom.join_code} />`.
+
+**Padrão a seguir:** em Server Components, qualquer elemento que precise de `onClick`/`onChange`/etc. deve ser extraído para um Client Component próprio (como já é feito com `CopyButton` e `SignOutButton`).
+
 ---
 
 ## Histórico

@@ -426,18 +426,18 @@
 
 ## FASE 27 — Relatório agregado da turma
 
-- [ ] Criar `app/teacher/classroom/[id]/report/page.tsx`
-- [ ] Exibir taxa de conclusão por molécula (`challenge_id` vs `status = 'completed'`)
-- [ ] Exibir top 5 erros mais frequentes da turma (agrupado por `action_type`)
-- [ ] Exibir distribuição de alunos por nível de dificuldade alcançado
-- [ ] Commitar: `feat: relatório agregado da turma`
+- [x] Criar `app/teacher/classroom/[id]/report/page.tsx`
+- [x] Exibir taxa de conclusão por molécula (`challenge_id` vs `status = 'completed'`)
+- [x] Exibir top 5 erros mais frequentes da turma (agrupado por `action_type`)
+- [x] Exibir distribuição de alunos por nível de dificuldade alcançado
+- [x] Commitar: `feat: relatório agregado da turma`
 
 ---
 
 ## FASE 28 — Testes manuais da plataforma
 
-- [ ] Cadastrar professor → criar turma → copiar código de acesso
-- [ ] Cadastrar aluno → entrar na turma pelo código
+- [x] Cadastrar professor → criar turma → copiar código de acesso
+- [x] Cadastrar aluno → entrar na turma pelo código
 - [ ] Aluno inicia desafio → ações e feedback aparecem em `challenge_sessions` / `session_actions` no Supabase em tempo real
 - [ ] Professor abre relatório individual → vê sessão do aluno com erros corretos
 - [ ] Professor abre relatório agregado → dados batem com o que o aluno fez
