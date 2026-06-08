@@ -3,8 +3,11 @@
 
 'use client';
 
+import { useRouter } from 'next/navigation';
+import { LogOut } from 'lucide-react';
 import { useMoleculeEditor } from './MoleculeEditor';
 import { atomData } from '../lib/atomData';
+import { signOut, getUser } from '../lib/auth';
 
 interface TopBarProps {
   onOpenChallenges?: () => void;
@@ -12,7 +15,17 @@ interface TopBarProps {
 
 export default function TopBar({ onOpenChallenges }: TopBarProps) {
   const { state, dispatch } = useMoleculeEditor();
+  const router = useRouter();
   const { graph, mode, activeAtomSymbol, bondingFrom } = state;
+
+  async function handleSignOut() {
+    // Só faz logout se houver sessão ativa; ignora silenciosamente caso contrário
+    const user = await getUser();
+    if (!user) return;
+    await signOut();
+    router.push('/login');
+    router.refresh();
+  }
 
   // Texto e cor do indicador de modo/ferramenta ativa
   let modeText = 'livre';
@@ -108,6 +121,19 @@ export default function TopBar({ onOpenChallenges }: TopBarProps) {
         <span className="h-3 w-px bg-stone-300" />
         <span>{graph.bonds.length} ligações</span>
       </div>
+
+      {/* Separador */}
+      <div className="h-4 w-px bg-stone-200 shrink-0" />
+
+      {/* Logout */}
+      <button
+        onClick={handleSignOut}
+        title="Sair da conta"
+        className="flex items-center gap-1 px-2 py-1 rounded text-xs text-stone-400 hover:text-stone-700 hover:bg-stone-100 transition-colors shrink-0"
+      >
+        <LogOut className="size-3.5" />
+        <span>Sair</span>
+      </button>
     </header>
   );
 }

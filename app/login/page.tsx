@@ -29,7 +29,7 @@ export default function LoginPage() {
     setLoading(true)
     setError(null)
 
-    const { error } = await signIn(email, password)
+    const { data, error } = await signIn(email, password)
 
     if (error) {
       setError('Email ou senha incorretos.')
@@ -37,7 +37,15 @@ export default function LoginPage() {
       return
     }
 
-    router.push('/app')
+    const role = data.user?.user_metadata?.role
+    const dest =
+      role === 'teacher'
+        ? '/teacher/dashboard'
+        : role === 'student'
+          ? '/student/dashboard'
+          : '/app'
+
+    router.push(dest)
     router.refresh()
   }
 

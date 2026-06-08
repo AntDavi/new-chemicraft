@@ -1,5 +1,5 @@
-// Middleware de proteção de rotas: autentica sessão e redireciona por papel (role).
-// Protege /teacher/* e /student/* — impede acesso cruzado entre roles.
+// Proxy (middleware) de proteção de rotas: autentica sessão e redireciona por papel (role).
+// No Next.js 16 usa-se proxy.ts em vez de middleware.ts.
 
 import { createServerClient } from '@supabase/ssr'
 import { NextResponse, type NextRequest } from 'next/server'
@@ -28,43 +28,51 @@ export async function proxy(request: NextRequest) {
     },
   )
 
-  // getUser valida o JWT com o servidor — não usar getSession() aqui (inseguro)
+  // getUser valida o JWT com o servidor — mais seguro que getSession()
   const {
     data: { user },
   } = await supabase.auth.getUser()
 
   const path = request.nextUrl.pathname
+  const role = user?.user_metadata?.role as string | undefined
+
+  const isAuthRoute = path === '/login' || path === '/register'
+  const isRoot = path === '/'
   const isTeacherRoute = path.startsWith('/teacher')
   const isStudentRoute = path.startsWith('/student')
-  const isAuthRoute = path === '/login' || path === '/register'
 
-  // Usuário não autenticado tentando acessar rota protegida
-  if (!user && (isTeacherRoute || isStudentRoute)) {
-    return NextResponse.redirect(new URL('/login', request.url))
+  // Usuário NÃO autenticado
+  if (!user) {
+    // Raiz e dashboards protegidos → login
+    if (isRoot || isTeacherRoute || isStudentRoute) {
+      return NextResponse.redirect(new URL('/login', request.url))
+    }
+    return supabaseResponse
   }
 
-  if (user) {
-    const role = user.user_metadata?.role as string | undefined
+  // Usuário AUTENTICADO
+  const teacherDest = '/teacher/dashboard'
+  const studentDest = '/student/dashboard'
+  const homeDest = role === 'teacher' ? teacherDest : studentDest
 
-    // Aluno tentando acessar rota de professor
-    if (role === 'student' && isTeacherRoute) {
-      return NextResponse.redirect(new URL('/app', request.url))
-    }
+  // Raiz ou páginas de auth → dashboard correto
+  if (isRoot || isAuthRoute) {
+    return NextResponse.redirect(new URL(homeDest, request.url))
+  }
 
-    // Professor tentando acessar rota de aluno
-    if (role === 'teacher' && isStudentRoute) {
-      return NextResponse.redirect(new URL('/app', request.url))
-    }
+  // Aluno tentando acessar rota de professor
+  if (role === 'student' && isTeacherRoute) {
+    return NextResponse.redirect(new URL(studentDest, request.url))
+  }
 
-    // Já autenticado tentando acessar login/registro — vai direto para o app
-    if (isAuthRoute) {
-      return NextResponse.redirect(new URL('/app', request.url))
-    }
+  // Professor tentando acessar rota de aluno
+  if (role === 'teacher' && isStudentRoute) {
+    return NextResponse.redirect(new URL(teacherDest, request.url))
   }
 
   return supabaseResponse
 }
 
 export const config = {
-  matcher: ['/teacher/:path*', '/student/:path*', '/login', '/register'],
+  matcher: ['/', '/login', '/register', '/teacher/:path*', '/student/:path*'],
 }

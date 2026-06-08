@@ -415,12 +415,12 @@
 
 ## FASE 26 — Relatório individual do aluno (visão do professor)
 
-- [ ] Criar `app/teacher/classroom/[id]/student/[studentId]/page.tsx`
-- [ ] Exibir linha do tempo de sessões (mais recente no topo)
-- [ ] Exibir taxa de conclusão por nível de dificuldade (`challenge_sessions.status` agrupado)
-- [ ] Exibir erros mais frequentes (agrupados por `action_type` de `session_actions`)
-- [ ] Exibir histórico de feedbacks da IA recebidos (de `session_feedback`)
-- [ ] Commitar: `feat: relatório individual do aluno`
+- [x] Criar `app/teacher/classroom/[id]/student/[studentId]/page.tsx`
+- [x] Exibir linha do tempo de sessões (mais recente no topo)
+- [x] Exibir taxa de conclusão por nível de dificuldade (`challenge_sessions.status` agrupado)
+- [x] Exibir erros mais frequentes (agrupados por `action_type` de `session_actions`)
+- [x] Exibir histórico de feedbacks da IA recebidos (de `session_feedback`)
+- [x] Commitar: `feat: relatório individual do aluno`
 
 ---
 
