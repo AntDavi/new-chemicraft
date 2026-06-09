@@ -28,12 +28,10 @@ async function ensureUserProfile(
   const name = (user?.user_metadata?.name as string | undefined) ?? email
   const role = (user?.user_metadata?.role as UserRole | undefined) ?? 'student'
 
-  const { error } = await supabase.from('users').insert({
-    id: userId,
-    email,
-    name,
-    role,
-  })
+  const { error } = await supabase.from('users').upsert(
+    { id: userId, email, name, role },
+    { onConflict: 'id', ignoreDuplicates: true },
+  )
   if (error) {
     console.error('Erro ao criar perfil em public.users:', error)
   }

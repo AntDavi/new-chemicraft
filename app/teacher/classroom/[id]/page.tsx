@@ -66,10 +66,10 @@ export default async function ClassroomPage({
     .eq("classroom_id", id)
     .order("joined_at", { ascending: true });
 
-  // E depois map para extrair o primeiro
   const enrollments = (enrollmentsRaw ?? []).map((e) => ({
     ...e,
-    users: e.users?.[0] ?? null, // pega apenas o primeiro
+    // PostgREST retorna objeto (many-to-one FK), nunca array aqui
+    users: (Array.isArray(e.users) ? (e.users[0] ?? null) : (e.users ?? null)) as Enrollment['users'],
   })) as Enrollment[];
 
   // Sessões de desafio desta turma

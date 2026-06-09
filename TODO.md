@@ -438,9 +438,9 @@
 
 - [x] Cadastrar professor → criar turma → copiar código de acesso
 - [x] Cadastrar aluno → entrar na turma pelo código
-- [ ] Aluno inicia desafio → ações e feedback aparecem em `challenge_sessions` / `session_actions` no Supabase em tempo real
-- [ ] Professor abre relatório individual → vê sessão do aluno com erros corretos
-- [ ] Professor abre relatório agregado → dados batem com o que o aluno fez
-- [ ] Testar RLS: aluno não consegue ler sessões de outro aluno
-- [ ] Testar middleware: teacher redirecionado ao tentar acessar `/student/*`
-- [ ] Commitar: `test: testes manuais da plataforma de turmas`
+- [x] Aluno inicia desafio → ações e feedback aparecem em `challenge_sessions` / `session_actions` no Supabase em tempo real
+- [x] Professor abre relatório individual → vê sessão do aluno com erros corretos
+- [x] Professor abre relatório agregado → dados batem com o que o aluno fez
+- [x] Testar RLS: aluno não consegue ler sessões de outro aluno
+- [x] Testar middleware: teacher redirecionado ao tentar acessar `/student/*`
+- [x] Commitar: `test: testes manuais da plataforma de turmas`

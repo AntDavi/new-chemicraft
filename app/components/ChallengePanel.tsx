@@ -1,9 +1,10 @@
 // Painel do desafio ativo: exibe nome, fórmula alvo e dificuldade do desafio,
-// botão "Analisar" (desabilitado durante análise) e banner de celebração
-// com botão "Próximo desafio" ao completar.
+// botão "Analisar" durante a tentativa, botão "Concluir desafio" ao acertar
+// (salva no banco) e botão "Próximo desafio" após confirmação.
 
 'use client';
 
+import { useState, useEffect } from 'react';
 import type { Challenge } from '../lib/challengeDatabase';
 import type { ChallengeStatus } from './MoleculeEditor';
 
@@ -16,6 +17,7 @@ interface ChallengePanelProps {
   challengeStatus: ChallengeStatus;
   isAnalyzing: boolean;
   onAnalyze: () => void;
+  onComplete: () => Promise<void>;
   onNewChallenge: () => void;
 }
 
@@ -41,10 +43,35 @@ export default function ChallengePanel({
   challengeStatus,
   isAnalyzing,
   onAnalyze,
+  onComplete,
   onNewChallenge,
 }: ChallengePanelProps) {
   const completed = challengeStatus === 'completed';
   const diff = difficultyConfig[challenge.difficulty];
+
+  // Controla estado local pós-conclusão: false = mostra "Concluir", true = mostra "Próximo"
+  const [saved, setSaved] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
+  const [saveError, setSaveError] = useState(false);
+
+  // Reseta ao trocar de desafio
+  useEffect(() => {
+    setSaved(false);
+    setSaveError(false);
+  }, [challenge.id]);
+
+  async function handleComplete() {
+    setIsSaving(true);
+    setSaveError(false);
+    try {
+      await onComplete();
+      setSaved(true);
+    } catch {
+      setSaveError(true);
+    } finally {
+      setIsSaving(false);
+    }
+  }
 
   return (
     <div
@@ -57,7 +84,7 @@ export default function ChallengePanel({
     >
       {/* ── Banner de celebração ─────────────────────────────────── */}
       {completed && (
-        <div className="flex flex-col items-center gap-1 py-3 rounded-lg bg-emerald-50 border border-emerald-200 animate-pulse">
+        <div className="flex flex-col items-center gap-1 py-3 rounded-lg bg-emerald-50 border border-emerald-200">
           <span className="text-3xl select-none">🎉</span>
           <p className="text-sm font-bold text-emerald-700 tracking-tight">
             Molécula correta!
@@ -70,26 +97,21 @@ export default function ChallengePanel({
 
       {/* ── Informações do desafio ───────────────────────────────── */}
       <div className="flex flex-col gap-1.5">
-        {/* Badge de dificuldade */}
         <span
           className={`self-start px-2 py-0.5 rounded text-[10px] font-semibold uppercase tracking-wide ${diff.className}`}
         >
           {diff.label}
         </span>
-
-        {/* Nome */}
         <h3 className="text-sm font-bold text-stone-800 leading-tight">
           {challenge.name}
         </h3>
-
-        {/* Fórmula */}
         <p className="text-xl font-mono font-bold text-stone-600 tracking-wider">
           {challenge.formula}
         </p>
       </div>
 
       {/* ── Ações ───────────────────────────────────────────────── */}
-      {!completed ? (
+      {!completed && (
         <button
           onClick={onAnalyze}
           disabled={isAnalyzing}
@@ -109,10 +131,41 @@ export default function ChallengePanel({
             'Analisar'
           )}
         </button>
-      ) : (
+      )}
+
+      {completed && !saved && (
+        <div className="flex flex-col gap-2">
+          <button
+            onClick={handleComplete}
+            disabled={isSaving}
+            className={`
+              w-full py-2 rounded-lg text-sm font-semibold transition-colors
+              ${isSaving
+                ? 'bg-emerald-300 text-white cursor-not-allowed'
+                : 'bg-emerald-600 text-white hover:bg-emerald-500 active:bg-emerald-700'}
+            `}
+          >
+            {isSaving ? (
+              <span className="flex items-center justify-center gap-2">
+                <span className="inline-block w-3.5 h-3.5 border-2 border-white/50 border-t-white rounded-full animate-spin" />
+                Salvando…
+              </span>
+            ) : (
+              'Concluir desafio'
+            )}
+          </button>
+          {saveError && (
+            <p className="text-xs text-red-600 text-center">
+              Falha ao salvar. Tente novamente.
+            </p>
+          )}
+        </div>
+      )}
+
+      {completed && saved && (
         <button
           onClick={onNewChallenge}
-          className="w-full py-2 rounded-lg text-sm font-semibold bg-emerald-600 text-white hover:bg-emerald-500 active:bg-emerald-700 transition-colors"
+          className="w-full py-2 rounded-lg text-sm font-semibold bg-stone-800 text-white hover:bg-stone-700 active:bg-stone-900 transition-colors"
         >
           Próximo desafio →
         </button>

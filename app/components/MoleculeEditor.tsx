@@ -4,6 +4,18 @@
 'use client';
 
 import { createContext, useContext, useReducer, useRef, useCallback, useState, ReactNode } from 'react';
+
+// crypto.randomUUID só existe em contextos seguros (HTTPS/localhost).
+// Fallback para HTTP em rede local.
+function generateId(): string {
+  if (typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function') {
+    return generateId();
+  }
+  return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, (c) => {
+    const r = (Math.random() * 16) | 0;
+    return (c === 'x' ? r : (r & 0x3) | 0x8).toString(16);
+  });
+}
 import {
   createSession,
   logAction,
@@ -125,7 +137,7 @@ function reducer(state: EditorState, action: Action): EditorState {
       return {
         ...state,
         graph: addAtom(state.graph, {
-          id: crypto.randomUUID(),
+          id: generateId(),
           symbol: action.symbol,
           x: action.x,
           y: action.y,
@@ -158,7 +170,7 @@ function reducer(state: EditorState, action: Action): EditorState {
         ...state,
         bondingFrom: null,
         graph: addBond(state.graph, {
-          id: crypto.randomUUID(),
+          id: generateId(),
           fromId: state.bondingFrom,
           toId: action.atomId,
           type: state.activeBondType,
@@ -269,6 +281,20 @@ function EditorLayout() {
       ? state.selectedAtomId
       : null;
 
+  // Chama a API para marcar o desafio como concluído no banco
+  async function handleComplete() {
+    if (!state.activeChallenge) return;
+    const res = await fetch('/api/complete-challenge', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ challengeId: state.activeChallenge.id }),
+    });
+    if (!res.ok) {
+      const data = await res.json().catch(() => ({}));
+      throw new Error(data.error ?? 'Falha ao concluir desafio');
+    }
+  }
+
   // Chama a API de análise e despacha as actions correspondentes
   async function handleAnalyze() {
     if (!state.activeChallenge) return;
@@ -318,6 +344,7 @@ function EditorLayout() {
                   challengeStatus={state.challengeStatus}
                   isAnalyzing={state.isAnalyzing}
                   onAnalyze={handleAnalyze}
+                  onComplete={handleComplete}
                   onNewChallenge={() => setChallengeModalOpen(true)}
                 />
                 <AIFeedbackPanel
@@ -335,6 +362,7 @@ function EditorLayout() {
                   challengeStatus={state.challengeStatus}
                   isAnalyzing={state.isAnalyzing}
                   onAnalyze={handleAnalyze}
+                  onComplete={handleComplete}
                   onNewChallenge={() => setChallengeModalOpen(true)}
                 />
                 <AIFeedbackPanel
@@ -372,7 +400,13 @@ function EditorLayout() {
 // Componente exportado
 // ---------------------------------------------------------------------------
 
-export default function MoleculeEditor({ children }: { children?: ReactNode }) {
+export default function MoleculeEditor({
+  children,
+  classroomId = null,
+}: {
+  children?: ReactNode;
+  classroomId?: string | null;
+}) {
   const [state, dispatch] = useReducer(reducer, initialState);
   // sessionIdRef guarda o ID da sessão ativa sem causar re-render
   const sessionIdRef = useRef<string | null>(null);
@@ -387,7 +421,7 @@ export default function MoleculeEditor({ children }: { children?: ReactNode }) {
         case 'START_CHALLENGE':
           sessionIdRef.current = null;
           // Cria a sessão em background; armazena o ID assim que resolver
-          createSession(action.challenge.id, null).then((id) => {
+          createSession(action.challenge.id, classroomId).then((id) => {
             sessionIdRef.current = id;
           });
           break;
