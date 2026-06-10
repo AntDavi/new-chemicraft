@@ -37,9 +37,11 @@ export function logAction(
 ): void {
   if (!sessionId) return
   const supabase = createBrowserClient()
-  supabase
-    .from('session_actions')
-    .insert({ session_id: sessionId, action_type: actionType, payload })
+  Promise.resolve(
+    supabase
+      .from('session_actions')
+      .insert({ session_id: sessionId, action_type: actionType, payload }),
+  )
     .then(() =>
       supabase
         .from('session_actions')
@@ -65,13 +67,13 @@ export function logFeedback(
 ): void {
   if (!sessionId) return
   const supabase = createBrowserClient()
-  supabase
-    .from('session_feedback')
-    .insert({
+  Promise.resolve(
+    supabase.from('session_feedback').insert({
       session_id: sessionId,
       feedback_text: feedbackText,
       triggered_by: triggeredBy,
-    })
+    }),
+  )
     .then(() =>
       supabase
         .from('session_feedback')
@@ -93,9 +95,10 @@ export function logFeedback(
 export function completeSession(sessionId: string | null): void {
   if (!sessionId) return
   const supabase = createBrowserClient()
-  supabase
-    .from('challenge_sessions')
-    .update({ status: 'completed', completed_at: new Date().toISOString() })
-    .eq('id', sessionId)
-    .catch(() => {})
+  Promise.resolve(
+    supabase
+      .from('challenge_sessions')
+      .update({ status: 'completed', completed_at: new Date().toISOString() })
+      .eq('id', sessionId),
+  ).catch(() => {})
 }

@@ -4,7 +4,7 @@
 import { createBrowserClient as _createBrowserClient } from "@supabase/ssr";
 import {
   createServerClient as _createServerClient,
-  type CookieMethods,
+  type CookieMethodsServer,
 } from "@supabase/ssr";
 import { type ReadonlyRequestCookies } from "next/dist/server/web/spec-extension/adapters/request-cookies";
 
@@ -19,7 +19,7 @@ export function createBrowserClient() {
 // Usado em Server Components, Route Handlers e middleware.
 // Recebe o objeto `cookies()` do Next.js para leitura/escrita de sessão.
 export function createServerClient(cookieStore: ReadonlyRequestCookies) {
-  const cookies: CookieMethods = {
+  const cookies: CookieMethodsServer = {
     getAll() {
       return cookieStore.getAll();
     },

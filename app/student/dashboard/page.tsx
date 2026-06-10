@@ -50,7 +50,7 @@ export default async function StudentDashboardPage() {
     .eq('student_id', user.id)
     .order('joined_at', { ascending: false })
 
-  const enrollments = (enrollmentsRaw ?? []) as Enrollment[]
+  const enrollments = (enrollmentsRaw ?? []) as unknown as Enrollment[]
 
   // Sessões de desafio do aluno para calcular progresso
   const { data: sessionsRaw } = await supabase

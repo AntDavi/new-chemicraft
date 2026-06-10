@@ -122,7 +122,7 @@ export default async function StudentReportPage({
 
   if (!enrollment) notFound()
 
-  const studentProfile = enrollment.users as { name: string | null; email: string | null } | null
+  const studentProfile = enrollment.users as unknown as { name: string | null; email: string | null } | null
   const studentName = studentProfile?.name ?? studentProfile?.email ?? 'Aluno'
 
   // Sessões do aluno nesta turma, mais recentes primeiro
