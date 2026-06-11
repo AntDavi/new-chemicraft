@@ -9,7 +9,7 @@ import { createContext, useContext, useReducer, useRef, useCallback, useState, R
 // Fallback para HTTP em rede local.
 function generateId(): string {
   if (typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function') {
-    return generateId();
+    return crypto.randomUUID();
   }
   return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, (c) => {
     const r = (Math.random() * 16) | 0;
@@ -27,8 +27,9 @@ import {
   addAtom,
   addBond,
   removeAtom,
+  removeBond,
 } from '../lib/moleculeGraph';
-import { getAvailableValence, bondOrder } from '../lib/valenceCalculator';
+import { getAvailableValence } from '../lib/valenceCalculator';
 import type { Challenge } from '../lib/challengeDatabase';
 import Sidebar from './Sidebar';
 import Canvas from './Canvas';
@@ -49,11 +50,14 @@ export type ChallengeStatus = 'idle' | 'active' | 'completed';
 
 export interface EditorState {
   graph: MoleculeGraph;
+  // Histórico de undo/redo — snapshots do grafo (apenas mudanças estruturais)
+  past: MoleculeGraph[];
+  future: MoleculeGraph[];
   mode: EditorMode;
   activeAtomSymbol: string | null;
-  activeBondType: BondType;
   bondingFrom: string | null;
   selectedAtomId: string | null;
+  selectedBondId: string | null;
   zoom: number;
   pan: { x: number; y: number };
   // IA Tutora
@@ -65,11 +69,13 @@ export interface EditorState {
 
 const initialState: EditorState = {
   graph: { atoms: [], bonds: [] },
+  past: [],
+  future: [],
   mode: 'edit',
   activeAtomSymbol: null,
-  activeBondType: 'single',
   bondingFrom: null,
   selectedAtomId: null,
+  selectedBondId: null,
   zoom: 1,
   pan: { x: 0, y: 0 },
   // IA Tutora
@@ -79,6 +85,20 @@ const initialState: EditorState = {
   isAnalyzing: false,
 };
 
+// Limite de passos no histórico de undo
+const HISTORY_LIMIT = 100;
+
+// Aplica uma mudança estrutural ao grafo registrando o estado anterior no
+// histórico de undo e limpando o de redo.
+function withHistory(state: EditorState, graph: MoleculeGraph): EditorState {
+  return {
+    ...state,
+    graph,
+    past: [...state.past, state.graph].slice(-HISTORY_LIMIT),
+    future: [],
+  };
+}
+
 // ---------------------------------------------------------------------------
 // Actions
 // ---------------------------------------------------------------------------
@@ -86,15 +106,18 @@ const initialState: EditorState = {
 export type Action =
   | { type: 'SET_MODE'; mode: EditorMode }
   | { type: 'SET_ACTIVE_ATOM'; symbol: string | null }
-  | { type: 'SET_BOND_TYPE'; bondType: BondType }
   | { type: 'PLACE_ATOM'; symbol: string; x: number; y: number }
   | { type: 'START_BOND'; atomId: string }
   | { type: 'COMPLETE_BOND'; atomId: string }
   | { type: 'CANCEL_BOND' }
   | { type: 'SELECT_ATOM'; atomId: string }
+  | { type: 'SELECT_BOND'; bondId: string }
   | { type: 'DESELECT_ATOM' }
   | { type: 'MOVE_ATOM'; atomId: string; x: number; y: number }
   | { type: 'DELETE_ATOM'; atomId: string }
+  | { type: 'DELETE_BOND'; bondId: string }
+  | { type: 'UNDO' }
+  | { type: 'REDO' }
   | { type: 'ZOOM_IN' }
   | { type: 'ZOOM_OUT' }
   | { type: 'SET_PAN'; x: number; y: number }
@@ -130,51 +153,79 @@ function reducer(state: EditorState, action: Action): EditorState {
     case 'SET_ACTIVE_ATOM':
       return { ...state, activeAtomSymbol: action.symbol };
 
-    case 'SET_BOND_TYPE':
-      return { ...state, activeBondType: action.bondType };
-
     case 'PLACE_ATOM':
-      return {
-        ...state,
-        graph: addAtom(state.graph, {
+      return withHistory(
+        state,
+        addAtom(state.graph, {
           id: generateId(),
           symbol: action.symbol,
           x: action.x,
           y: action.y,
         }),
-      };
+      );
 
     case 'START_BOND':
-      return { ...state, bondingFrom: action.atomId, selectedAtomId: null };
+      // O átomo de origem também fica selecionado para permitir Delete direto
+      return {
+        ...state,
+        bondingFrom: action.atomId,
+        selectedAtomId: action.atomId,
+        selectedBondId: null,
+      };
 
     case 'COMPLETE_BOND': {
       if (!state.bondingFrom || state.bondingFrom === action.atomId) {
         return { ...state, bondingFrom: null };
       }
-      // Ligação duplicada — não permitido no MVP
-      const alreadyBonded = state.graph.bonds.some(
+      const existing = state.graph.bonds.find(
         (b) =>
           (b.fromId === state.bondingFrom && b.toId === action.atomId) ||
           (b.fromId === action.atomId && b.toId === state.bondingFrom),
       );
-      if (alreadyBonded) return state;
-      const order = bondOrder[state.activeBondType];
+      if (existing) {
+        // Ligação já existe: repetir o gesto promove simples → dupla → tripla.
+        // Tripla permanece tripla. Cada promoção consome 1 de valência em cada átomo.
+        if (existing.type === 'triple') {
+          return { ...state, bondingFrom: null, selectedAtomId: null };
+        }
+        if (
+          getAvailableValence(state.bondingFrom, state.graph) < 1 ||
+          getAvailableValence(action.atomId, state.graph) < 1
+        ) {
+          return state;
+        }
+        const promoted: BondType = existing.type === 'single' ? 'double' : 'triple';
+        return {
+          ...withHistory(state, {
+            ...state.graph,
+            bonds: state.graph.bonds.map((b) =>
+              b.id === existing.id ? { ...b, type: promoted } : b,
+            ),
+          }),
+          bondingFrom: null,
+          selectedAtomId: null,
+        };
+      }
+      // Nova ligação: sempre nasce simples
       if (
-        getAvailableValence(state.bondingFrom, state.graph) < order ||
-        getAvailableValence(action.atomId, state.graph) < order
+        getAvailableValence(state.bondingFrom, state.graph) < 1 ||
+        getAvailableValence(action.atomId, state.graph) < 1
       ) {
         // Valência insuficiente — ignora sem sair do modo de ligação
         return state;
       }
       return {
-        ...state,
+        ...withHistory(
+          state,
+          addBond(state.graph, {
+            id: generateId(),
+            fromId: state.bondingFrom,
+            toId: action.atomId,
+            type: 'single',
+          }),
+        ),
         bondingFrom: null,
-        graph: addBond(state.graph, {
-          id: generateId(),
-          fromId: state.bondingFrom,
-          toId: action.atomId,
-          type: state.activeBondType,
-        }),
+        selectedAtomId: null,
       };
     }
 
@@ -182,10 +233,18 @@ function reducer(state: EditorState, action: Action): EditorState {
       return { ...state, bondingFrom: null };
 
     case 'SELECT_ATOM':
-      return { ...state, selectedAtomId: action.atomId };
+      return { ...state, selectedAtomId: action.atomId, selectedBondId: null };
+
+    case 'SELECT_BOND':
+      return {
+        ...state,
+        selectedBondId: action.bondId,
+        selectedAtomId: null,
+        bondingFrom: null,
+      };
 
     case 'DESELECT_ATOM':
-      return { ...state, selectedAtomId: null };
+      return { ...state, selectedAtomId: null, selectedBondId: null };
 
     case 'MOVE_ATOM':
       return {
@@ -200,11 +259,47 @@ function reducer(state: EditorState, action: Action): EditorState {
 
     case 'DELETE_ATOM':
       return {
-        ...state,
+        ...withHistory(state, removeAtom(state.graph, action.atomId)),
         selectedAtomId:
           state.selectedAtomId === action.atomId ? null : state.selectedAtomId,
-        graph: removeAtom(state.graph, action.atomId),
+        bondingFrom:
+          state.bondingFrom === action.atomId ? null : state.bondingFrom,
       };
+
+    case 'DELETE_BOND':
+      return {
+        ...withHistory(state, removeBond(state.graph, action.bondId)),
+        selectedBondId:
+          state.selectedBondId === action.bondId ? null : state.selectedBondId,
+      };
+
+    case 'UNDO': {
+      if (state.past.length === 0) return state;
+      const previous = state.past[state.past.length - 1];
+      return {
+        ...state,
+        graph: previous,
+        past: state.past.slice(0, -1),
+        future: [state.graph, ...state.future],
+        bondingFrom: null,
+        selectedAtomId: null,
+        selectedBondId: null,
+      };
+    }
+
+    case 'REDO': {
+      if (state.future.length === 0) return state;
+      const [next, ...rest] = state.future;
+      return {
+        ...state,
+        graph: next,
+        past: [...state.past, state.graph],
+        future: rest,
+        bondingFrom: null,
+        selectedAtomId: null,
+        selectedBondId: null,
+      };
+    }
 
     case 'ZOOM_IN':
       return { ...state, zoom: Math.min(ZOOM_MAX, +(state.zoom + ZOOM_STEP).toFixed(1)) };
@@ -213,7 +308,14 @@ function reducer(state: EditorState, action: Action): EditorState {
       return { ...state, zoom: Math.max(ZOOM_MIN, +(state.zoom - ZOOM_STEP).toFixed(1)) };
 
     case 'CLEAR':
-      return { ...initialState };
+      // Limpa apenas o grafo (de forma reversível via undo); preserva modo,
+      // zoom/pan e o desafio ativo.
+      return {
+        ...withHistory(state, { atoms: [], bonds: [] }),
+        bondingFrom: null,
+        selectedAtomId: null,
+        selectedBondId: null,
+      };
 
     // ── IA Tutora ────────────────────────────────────────────────────────────
 
@@ -440,6 +542,10 @@ export default function MoleculeEditor({
 
         case 'DELETE_ATOM':
           logAction(sessionIdRef.current, 'delete_atom', { atomId: action.atomId });
+          break;
+
+        case 'DELETE_BOND':
+          logAction(sessionIdRef.current, 'delete_bond', { bondId: action.bondId });
           break;
 
         case 'SET_AI_FEEDBACK':

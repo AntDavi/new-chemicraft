@@ -1,13 +1,11 @@
-// Coluna lateral esquerda do editor. Compõe AtomPalette (topo) e BondToolbar (base)
-// separados por um divisor. Conecta-se ao contexto global via useMoleculeEditor
-// para ler e atualizar o átomo ativo e o tipo de ligação ativo.
+// Coluna lateral esquerda do editor. Exibe a AtomPalette (paleta de átomos).
+// A criação de ligações não usa mais botões: clicar em dois átomos no canvas
+// cria a ligação, e repetir o gesto promove simples → dupla → tripla.
 
 'use client';
 
 import { useMoleculeEditor } from './MoleculeEditor';
 import AtomPalette from './AtomPalette';
-import BondToolbar from './BondToolbar';
-import { BondType } from './MoleculeEditor';
 
 export default function Sidebar() {
   const { state, dispatch } = useMoleculeEditor();
@@ -16,10 +14,6 @@ export default function Sidebar() {
   function handleAtomSelect(symbol: string) {
     const next = state.activeAtomSymbol === symbol ? null : symbol;
     dispatch({ type: 'SET_ACTIVE_ATOM', symbol: next });
-  }
-
-  function handleBondChange(bondType: BondType) {
-    dispatch({ type: 'SET_BOND_TYPE', bondType });
   }
 
   return (
@@ -32,19 +26,6 @@ export default function Sidebar() {
         <AtomPalette
           activeSymbol={state.activeAtomSymbol}
           onSelect={handleAtomSelect}
-        />
-      </div>
-
-      <hr className="mx-3 border-stone-200" />
-
-      {/* Seção ligações — desabilitada no modo select */}
-      <div className={`transition-opacity ${isSelectMode ? 'opacity-40 pointer-events-none' : ''}`}>
-        <p className="pt-3 pb-1 text-center text-[9px] font-semibold tracking-widest uppercase text-stone-400 select-none">
-          Ligação
-        </p>
-        <BondToolbar
-          activeBondType={state.activeBondType}
-          onChange={handleBondChange}
         />
       </div>
     </aside>

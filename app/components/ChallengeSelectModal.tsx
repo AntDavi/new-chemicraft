@@ -102,13 +102,11 @@ export default function ChallengeSelectModal({ isOpen, onClose }: ChallengeSelec
                             : 'bg-white border-stone-200 hover:border-stone-300 hover:bg-stone-50'}
                         `}
                       >
-                        {/* Info */}
+                        {/* Info — a fórmula nunca é exibida: o aluno deve
+                            descobri-la a partir do nome e das dicas */}
                         <div className="flex flex-col gap-0.5 min-w-0">
                           <span className={`text-sm font-semibold truncate ${isActive ? 'text-white' : 'text-stone-800'}`}>
                             {challenge.name}
-                          </span>
-                          <span className={`text-base font-mono font-bold tracking-wide ${isActive ? 'text-stone-300' : 'text-stone-500'}`}>
-                            {challenge.formula}
                           </span>
                         </div>
 

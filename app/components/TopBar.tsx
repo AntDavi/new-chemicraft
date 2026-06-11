@@ -1,10 +1,13 @@
 // Barra de topo. Exibe nome do app, toggle de modo (select/edit),
-// indicador do modo ativo e contadores de átomos/ligações.
+// botões de desfazer/refazer, indicador do modo ativo, contadores de
+// átomos/ligações e botão de volta ao dashboard conforme o papel do usuário.
 
 'use client';
 
+import { useEffect, useState } from 'react';
+import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { LogOut } from 'lucide-react';
+import { LogOut, Undo2, Redo2, LayoutDashboard } from 'lucide-react';
 import { useMoleculeEditor } from './MoleculeEditor';
 import { atomData } from '../lib/atomData';
 import { signOut, getUser } from '../lib/auth';
@@ -17,6 +20,19 @@ export default function TopBar({ onOpenChallenges }: TopBarProps) {
   const { state, dispatch } = useMoleculeEditor();
   const router = useRouter();
   const { graph, mode, activeAtomSymbol, bondingFrom } = state;
+
+  // Papel do usuário logado — define o destino do botão de dashboard
+  const [role, setRole] = useState<'teacher' | 'student' | null>(null);
+
+  useEffect(() => {
+    getUser().then((user) => {
+      const r = user?.user_metadata?.role as 'teacher' | 'student' | undefined;
+      setRole(r ?? null);
+    });
+  }, []);
+
+  const dashboardHref =
+    role === 'teacher' ? '/teacher/dashboard' : role === 'student' ? '/student/dashboard' : null;
 
   async function handleSignOut() {
     // Só faz logout se houver sessão ativa; ignora silenciosamente caso contrário
@@ -83,6 +99,29 @@ export default function TopBar({ onOpenChallenges }: TopBarProps) {
       {/* Separador */}
       <div className="h-4 w-px bg-stone-200 shrink-0" />
 
+      {/* Desfazer / Refazer */}
+      <div className="flex items-center gap-0.5 shrink-0">
+        <button
+          onClick={() => dispatch({ type: 'UNDO' })}
+          disabled={state.past.length === 0}
+          title="Desfazer (Ctrl+Z)"
+          className="p-1.5 rounded text-stone-500 hover:text-stone-800 hover:bg-stone-100 disabled:opacity-30 disabled:hover:bg-transparent disabled:hover:text-stone-500 transition-colors"
+        >
+          <Undo2 className="size-3.5" />
+        </button>
+        <button
+          onClick={() => dispatch({ type: 'REDO' })}
+          disabled={state.future.length === 0}
+          title="Refazer (Ctrl+Shift+Z)"
+          className="p-1.5 rounded text-stone-500 hover:text-stone-800 hover:bg-stone-100 disabled:opacity-30 disabled:hover:bg-transparent disabled:hover:text-stone-500 transition-colors"
+        >
+          <Redo2 className="size-3.5" />
+        </button>
+      </div>
+
+      {/* Separador */}
+      <div className="h-4 w-px bg-stone-200 shrink-0" />
+
       {/* Ferramenta ativa */}
       <div className="flex items-center gap-1.5">
         <span className="text-[9px] font-semibold tracking-widest uppercase text-stone-400">
@@ -124,6 +163,18 @@ export default function TopBar({ onOpenChallenges }: TopBarProps) {
 
       {/* Separador */}
       <div className="h-4 w-px bg-stone-200 shrink-0" />
+
+      {/* Voltar ao dashboard — visível apenas com usuário logado */}
+      {dashboardHref && (
+        <Link
+          href={dashboardHref}
+          title="Voltar ao dashboard"
+          className="flex items-center gap-1 px-2 py-1 rounded text-xs text-stone-400 hover:text-stone-700 hover:bg-stone-100 transition-colors shrink-0"
+        >
+          <LayoutDashboard className="size-3.5" />
+          <span>Dashboard</span>
+        </Link>
+      )}
 
       {/* Logout */}
       <button

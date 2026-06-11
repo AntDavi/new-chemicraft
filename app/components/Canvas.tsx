@@ -6,7 +6,7 @@
 
 import { useRef, useState, useCallback, useEffect } from 'react';
 import { useMoleculeEditor } from './MoleculeEditor';
-import { getAvailableValence, bondOrder } from '../lib/valenceCalculator';
+import { getAvailableValence } from '../lib/valenceCalculator';
 import { getConnectedComponents } from '../lib/moleculeGraph';
 import AtomNode from './AtomNode';
 import BondEdge from './BondEdge';
@@ -18,7 +18,7 @@ import FormulaLabel from './FormulaLabel';
 
 export default function Canvas() {
   const { state, dispatch } = useMoleculeEditor();
-  const { graph, mode, activeAtomSymbol, activeBondType, bondingFrom, selectedAtomId, zoom, pan } = state;
+  const { graph, mode, activeAtomSymbol, bondingFrom, selectedAtomId, selectedBondId, zoom, pan } = state;
 
   const svgRef = useRef<SVGSVGElement>(null);
 
@@ -32,16 +32,35 @@ export default function Canvas() {
   const hasPannedRef = useRef(false);
 
   // -------------------------------------------------------------------------
-  // Delete / Backspace — remove átomo selecionado (apenas modo edit)
+  // Teclado: Delete/Backspace remove ligação ou átomo selecionado (modo edit),
+  // Ctrl+Z desfaz, Ctrl+Shift+Z / Ctrl+Y refaz, I/Escape alternam o modo.
   // -------------------------------------------------------------------------
 
   useEffect(() => {
     const onKeyDown = (e: KeyboardEvent) => {
       if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement) return;
 
-      if ((e.key === 'Delete' || e.key === 'Backspace') && selectedAtomId && mode === 'edit') {
-        dispatch({ type: 'DELETE_ATOM', atomId: selectedAtomId });
+      if ((e.ctrlKey || e.metaKey) && (e.key === 'z' || e.key === 'Z')) {
+        e.preventDefault();
+        dispatch({ type: e.shiftKey ? 'REDO' : 'UNDO' });
         return;
+      }
+
+      if ((e.ctrlKey || e.metaKey) && (e.key === 'y' || e.key === 'Y')) {
+        e.preventDefault();
+        dispatch({ type: 'REDO' });
+        return;
+      }
+
+      if ((e.key === 'Delete' || e.key === 'Backspace') && mode === 'edit') {
+        if (selectedBondId) {
+          dispatch({ type: 'DELETE_BOND', bondId: selectedBondId });
+          return;
+        }
+        if (selectedAtomId) {
+          dispatch({ type: 'DELETE_ATOM', atomId: selectedAtomId });
+          return;
+        }
       }
 
       if (e.key === 'i' || e.key === 'I') {
@@ -55,7 +74,7 @@ export default function Canvas() {
     };
     window.addEventListener('keydown', onKeyDown);
     return () => window.removeEventListener('keydown', onKeyDown);
-  }, [selectedAtomId, mode, dispatch]);
+  }, [selectedAtomId, selectedBondId, mode, dispatch]);
 
   // -------------------------------------------------------------------------
   // Conversão de coordenadas tela → conteúdo (desconta pan e zoom)
@@ -172,7 +191,8 @@ export default function Canvas() {
         return;
       }
 
-      // Modo edit: fluxo de ligação e seleção
+      // Modo edit: clicar num átomo inicia ligação; clicar em outro completa.
+      // Repetir o gesto sobre o mesmo par promove simples → dupla → tripla.
       if (bondingFrom !== null) {
         if (bondingFrom === atomId) {
           dispatch({ type: 'CANCEL_BOND' });
@@ -182,19 +202,24 @@ export default function Canvas() {
         return;
       }
 
-      if (activeAtomSymbol !== null) {
-        dispatch({ type: 'START_BOND', atomId });
-        return;
-      }
+      dispatch({ type: 'START_BOND', atomId });
+    },
+    [mode, bondingFrom, selectedAtomId, dispatch],
+  );
 
-      // Em edit mode sem ferramenta ativa: seleciona/deseleciona (para poder deletar)
-      if (selectedAtomId === atomId) {
+  // -------------------------------------------------------------------------
+  // Clique em ligação — seleciona/deseleciona para permitir apagar com Delete
+  // -------------------------------------------------------------------------
+
+  const handleBondClick = useCallback(
+    (bondId: string) => {
+      if (selectedBondId === bondId) {
         dispatch({ type: 'DESELECT_ATOM' });
       } else {
-        dispatch({ type: 'SELECT_ATOM', atomId });
+        dispatch({ type: 'SELECT_BOND', bondId });
       }
     },
-    [mode, bondingFrom, activeAtomSymbol, selectedAtomId, dispatch],
+    [selectedBondId, dispatch],
   );
 
   // -------------------------------------------------------------------------
@@ -204,13 +229,20 @@ export default function Canvas() {
   const isBondTargetInvalid = useCallback(
     (atomId: string): boolean => {
       if (!bondingFrom || atomId === bondingFrom || hoveredAtomId !== atomId) return false;
-      const order = bondOrder[activeBondType];
+      const existing = graph.bonds.find(
+        (b) =>
+          (b.fromId === bondingFrom && b.toId === atomId) ||
+          (b.fromId === atomId && b.toId === bondingFrom),
+      );
+      // Tripla é o máximo — não há promoção possível
+      if (existing?.type === 'triple') return true;
+      // Criar ou promover sempre consome 1 de valência em cada átomo
       return (
-        getAvailableValence(atomId, graph) < order ||
-        getAvailableValence(bondingFrom, graph) < order
+        getAvailableValence(atomId, graph) < 1 ||
+        getAvailableValence(bondingFrom, graph) < 1
       );
     },
-    [bondingFrom, hoveredAtomId, activeBondType, graph],
+    [bondingFrom, hoveredAtomId, graph],
   );
 
   // -------------------------------------------------------------------------
@@ -257,7 +289,16 @@ export default function Canvas() {
           const from = graph.atoms.find((a) => a.id === bond.fromId);
           const to = graph.atoms.find((a) => a.id === bond.toId);
           if (!from || !to) return null;
-          return <BondEdge key={bond.id} bond={bond} fromAtom={from} toAtom={to} />;
+          return (
+            <BondEdge
+              key={bond.id}
+              bond={bond}
+              fromAtom={from}
+              toAtom={to}
+              isSelected={bond.id === selectedBondId}
+              onClick={() => handleBondClick(bond.id)}
+            />
+          );
         })}
 
         {/* Preview de ligação em andamento */}

@@ -40,11 +40,12 @@ export async function proxy(request: NextRequest) {
   const isRoot = path === '/'
   const isTeacherRoute = path.startsWith('/teacher')
   const isStudentRoute = path.startsWith('/student')
+  const isEditorRoute = path === '/app' || path.startsWith('/app/')
 
   // Usuário NÃO autenticado
   if (!user) {
-    // Raiz e dashboards protegidos → login
-    if (isRoot || isTeacherRoute || isStudentRoute) {
+    // Raiz, dashboards e editor protegidos → login
+    if (isRoot || isTeacherRoute || isStudentRoute || isEditorRoute) {
       return NextResponse.redirect(new URL('/login', request.url))
     }
     return supabaseResponse
@@ -74,5 +75,5 @@ export async function proxy(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ['/', '/login', '/register', '/teacher/:path*', '/student/:path*'],
+  matcher: ['/', '/login', '/register', '/app/:path*', '/app', '/teacher/:path*', '/student/:path*'],
 }

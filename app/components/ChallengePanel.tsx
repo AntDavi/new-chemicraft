@@ -1,4 +1,4 @@
-// Painel do desafio ativo: exibe nome, fórmula alvo e dificuldade do desafio,
+// Painel do desafio ativo: exibe nome e dificuldade do desafio (a fórmula é ocultada),
 // botão "Analisar" durante a tentativa, botão "Concluir desafio" ao acertar
 // (salva no banco) e botão "Próximo desafio" após confirmação.
 
@@ -102,12 +102,10 @@ export default function ChallengePanel({
         >
           {diff.label}
         </span>
-        <h3 className="text-sm font-bold text-stone-800 leading-tight">
+        {/* A fórmula nunca é exibida: o aluno constrói a partir do nome */}
+        <h3 className="text-xl font-bold text-stone-800 leading-tight">
           {challenge.name}
         </h3>
-        <p className="text-xl font-mono font-bold text-stone-600 tracking-wider">
-          {challenge.formula}
-        </p>
       </div>
 
       {/* ── Ações ───────────────────────────────────────────────── */}

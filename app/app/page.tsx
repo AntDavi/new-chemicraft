@@ -1,4 +1,4 @@
-// Editor de moléculas — rota pública /app, acessível com ou sem login.
+// Editor de moléculas — rota /app, protegida pelo proxy (exige login).
 // Quando o aluno está autenticado e matriculado em uma turma, passa o
 // classroomId ao MoleculeEditor para que as sessões sejam associadas à turma.
 

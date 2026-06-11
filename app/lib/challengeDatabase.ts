@@ -44,7 +44,7 @@ export const challenges: Challenge[] = [
     name: 'Água',
     formula: 'H₂O',
     difficulty: 'iniciante',
-    initialHint: 'O oxigênio tem valência 2. Conecte dois hidrogênios a ele com ligações simples.',
+    initialHint: 'É a molécula mais famosa do planeta, feita de oxigênio e hidrogênio. Pense em quantas ligações cada um desses elementos consegue fazer.',
     targetGraph: {
       atoms: [
         { id: 'a1', symbol: 'O' },
@@ -72,7 +72,7 @@ export const challenges: Challenge[] = [
     name: 'Metano',
     formula: 'CH₄',
     difficulty: 'iniciante',
-    initialHint: 'O carbono tem valência 4. Conecte quatro hidrogênios a ele com ligações simples.',
+    initialHint: 'É o hidrocarboneto mais simples que existe: um único carbono cercado por hidrogênios. A valência do carbono diz quantos cabem.',
     targetGraph: {
       atoms: [
         { id: 'a1', symbol: 'C' },
@@ -102,7 +102,7 @@ export const challenges: Challenge[] = [
     name: 'Amônia',
     formula: 'NH₃',
     difficulty: 'iniciante',
-    initialHint: 'O nitrogênio tem valência 3. Conecte três hidrogênios a ele com ligações simples.',
+    initialHint: 'Base dos fertilizantes, é formada por um nitrogênio e alguns hidrogênios. A valência do nitrogênio é a chave.',
     targetGraph: {
       atoms: [
         { id: 'a1', symbol: 'N' },
@@ -128,7 +128,7 @@ export const challenges: Challenge[] = [
     name: 'Dióxido de Carbono',
     formula: 'CO₂',
     difficulty: 'intermediário',
-    initialHint: 'O carbono tem valência 4 e o oxigênio tem valência 2. Experimente ligações duplas.',
+    initialHint: 'O gás do efeito estufa: só carbono e oxigênio, sem nenhum hidrogênio. Ligações simples não bastam para completar todas as valências.',
     targetGraph: {
       atoms: [
         { id: 'a1', symbol: 'C' },
@@ -160,7 +160,7 @@ export const challenges: Challenge[] = [
     name: 'Etanol',
     formula: 'C₂H₆O',
     difficulty: 'intermediário',
-    initialHint: 'Comece com dois carbonos ligados entre si. Um deles recebe o grupo –OH.',
+    initialHint: 'É o álcool das bebidas: uma pequena cadeia de carbonos com um grupo –OH. Complete as valências que sobrarem com hidrogênios.',
     targetGraph: {
       atoms: [
         { id: 'a1', symbol: 'C' }, // CH3
@@ -224,7 +224,7 @@ export const challenges: Challenge[] = [
     name: 'Glicose',
     formula: 'C₆H₁₂O₆',
     difficulty: 'avançado',
-    initialHint: 'A glicose é um aldeído de 6 carbonos em cadeia. C1 tem uma ligação dupla com O. Cada carbono intermediário tem um grupo –OH.',
+    initialHint: 'É o açúcar que dá energia às células: uma cadeia de carbonos rica em grupos –OH, com um oxigênio em ligação dupla numa das pontas.',
     targetGraph: {
       atoms: [
         // Carbonos
@@ -313,7 +313,7 @@ export const challenges: Challenge[] = [
     name: 'Mentol',
     formula: 'C₁₀H₂₀O',
     difficulty: 'avançado',
-    initialHint: 'O mentol tem um anel de 6 carbonos (ciclohexano). Um carbono do anel tem –OH, outro tem um grupo metil (–CH₃) e outro tem um grupo isopropil (–CH(CH₃)₂).',
+    initialHint: 'É o frescor da hortelã: um anel de carbonos com algumas ramificações e um único grupo –OH. Complete as valências com hidrogênios.',
     targetGraph: {
       atoms: [
         // Anel ciclohexano

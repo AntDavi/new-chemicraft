@@ -132,7 +132,9 @@ export default async function TeacherDashboardPage() {
                 >
                   <Card className="transition-colors group-hover:border-foreground/20">
                     <CardHeader className="pb-3">
-                      <div className="flex items-center justify-between gap-4">
+                      {/* min-w-0 permite que o título trunque em vez de empurrar
+                          o código/contador para fora do card */}
+                      <div className="flex items-center justify-between gap-4 min-w-0">
                         <div className="space-y-1 min-w-0">
                           <CardTitle className="text-base truncate">
                             {classroom.name}

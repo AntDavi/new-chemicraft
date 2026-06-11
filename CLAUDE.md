@@ -68,9 +68,8 @@ Editor visual 2D de moléculas químicas para uso educacional. O usuário posici
   /page.tsx                  → página principal (layout, instância do editor)
 /components
   /MoleculeEditor.tsx         → componente-raiz; orquestra estado global e layout
-  /Sidebar.tsx                → coluna esquerda: AtomPalette (topo) + BondToolbar (base)
+  /Sidebar.tsx                → coluna esquerda: AtomPalette
   /AtomPalette.tsx            → círculos clicáveis com símbolo de cada átomo (empilhados verticalmente)
-  /BondToolbar.tsx            → seletor de tipo de ligação: I / II / III (vertical, abaixo da paleta)
   /Canvas.tsx                 → SVG interativo (átomos + ligações + FormulaLabel)
   /FormulaLabel.tsx           → balão flutuante SVG com a fórmula molecular calculada
   /AtomInfoCard.tsx           → barra inferior com info do átomo selecionado no canvas
@@ -87,9 +86,9 @@ Editor visual 2D de moléculas químicas para uso educacional. O usuário posici
 
 1. Usuário clica em um átomo na `AtomPalette` (sidebar) → define átomo ativo
 2. Clica em área vazia do `Canvas` → cria nó no grafo com posição (x, y)
-3. Seleciona tipo de ligação no `BondToolbar` (I / II / III)
-4. Clica num nó existente (origem) → clica em outro nó (destino) → cria aresta tipada
-5. Clica num átomo já posicionado → `AtomInfoCard` desliza na barra inferior
+3. Clica num nó existente (origem) → clica em outro nó (destino) → cria ligação simples
+4. Repete o gesto sobre o mesmo par de nós → promove a ligação (simples → dupla → tripla; tripla permanece tripla)
+5. No modo selecionar, clica num átomo já posicionado → `AtomInfoCard` desliza na barra inferior
 6. `formulaCalculator` recalcula a fórmula a cada mudança no grafo
 7. `FormulaLabel` exibe o balão flutuante atualizado no canvas
 8. `moleculeDatabase` tenta identificar a molécula → exibe nome no balão (se reconhecida)
@@ -215,14 +214,16 @@ Lógica em `lib/formulaCalculator.ts`, chamada a cada mudança no grafo.
 | Ação do usuário | Resultado |
 |----------------|-----------|
 | Clique em área vazia (átomo ativo) | Cria nó na posição clicada |
-| Clique em nó (modo ligação, 1º clique) | Marca como origem |
-| Clique em nó (modo ligação, 2º clique) | Cria ligação tipada |
+| Clique em nó (modo edição, 1º clique) | Marca como origem da ligação (e seleciona o nó) |
+| Clique em nó (modo edição, 2º clique em outro nó) | Cria ligação simples; se já existe, promove simples → dupla → tripla (tripla permanece) |
+| Clique em ligação | Seleciona a ligação (destaque azul) |
 | Clique em nó (modo seleção) | Abre `AtomInfoCard` na barra inferior |
 | Clique fora de qualquer nó | Fecha `AtomInfoCard` / cancela seleção |
 | Arrastar nó | Move o átomo pela tela |
-| Delete / Backspace com nó selecionado | Remove nó e suas ligações |
+| Delete / Backspace com nó ou ligação selecionado | Remove o nó (e suas ligações) ou apenas a ligação |
+| Ctrl+Z / Ctrl+Shift+Z (ou Ctrl+Y) | Desfaz / refaz mudanças estruturais no grafo |
 | Botão − / + | Zoom out / zoom in no canvas |
-| Botão LIMPAR | Remove todos os átomos e ligações |
+| Botão LIMPAR | Remove todos os átomos e ligações (reversível com desfazer) |
 
 ---
 
@@ -499,3 +500,4 @@ with check (auth.uid() = id);
 | 2025-05-28 | valenceCalculator.ts adicionado à arquitetura |
 | 2025-05-28 | FormulaLabel como balão flutuante SVG no canvas documentado |
 | 2025-06-02 | Implementação da IA que irá corrigir as atividades |
+| 2026-06-11 | UX revisada: ligações por cliques repetidos (sem BondToolbar), seleção+Delete de ligações, undo/redo, /app protegido por login, botão de volta ao dashboard, IA e desafios sem revelar fórmula/receita, fix overflow no card de turma |
